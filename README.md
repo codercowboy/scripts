@@ -31,6 +31,7 @@ What the scripts do
 * maillog.sh - a script to mail a log to yourself using ssmpt
 * md5tool.sh - md5 digest creation & validation script
 * myrsync.sh - a quick wrapper for rsync with sane options on by default
+* osxrotatelogs.sh - archive a gzipped timestamped version of logs
 * processdiff.sh - print a user friendly version of diff's output
 * renameit.sh - rename image files w/ a timestamp based on last modified time
 * rsyncjob.sh - personal rsync job script
