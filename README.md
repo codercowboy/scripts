@@ -3,9 +3,9 @@ Coder Cowboy Scripts
 
 Various bash scripts to help you on your way.
 
-written by Jason Baker ([jason@onejasonforsale.com](mailto:jason@onejasonforsale.com))
-on github: [https://github.com/codercowboy/scripts](https://github.com/codercowboy/scripts)
-more info: [http://www.codercowboy.com](http://www.codercowboy.com)
+* written by Jason Baker ([jason@onejasonforsale.com](mailto:jason@onejasonforsale.com))
+* on github: [https://github.com/codercowboy/scripts](https://github.com/codercowboy/scripts)
+* more info: [http://www.codercowboy.com](http://www.codercowboy.com)
 
 Basic Instructions
 ==================
@@ -14,8 +14,8 @@ Bash is a scripting language that's provided with linux distributions. It's a lo
 
 If you're interested in learning bash scripting, here are two resources to check out, the first one is especially important to check out:
 
-[How to excel at bash scripting](http://www.codercowboy.com/2012/07/07/how-to-excel-at-bash-scripting/)
-[Coder Cowboy Programming Resources](http://www.codercowboy.com/programming-stuff-links-books/) - check out the "Unix Scripting" sectionmarkd
+* [How to excel at bash scripting](http://www.codercowboy.com/2012/07/07/how-to-excel-at-bash-scripting/)
+* [Coder Cowboy Programming Resources](http://www.codercowboy.com/programming-stuff-links-books/) - check out the "Unix Scripting" sectionmarkd
 
 What the scripts do
 ===================
@@ -43,10 +43,13 @@ Maybe someday I'll consolidate several of the helpful-almost-one-liner scripts i
 
 If you have any questions, comments, kudos, criticisms about any of the scripts, e-mail me. 
 
+Licensing
+=========
+
 All scripts are licensed with the [Apache license](http://en.wikipedia.org/wiki/Apache_license), which is a great license because, essentially it:
-a) covers liability - my code should work, but I'm not liable if you do something stupid with it
-b) allows you to copy, fork, and use the code, even commercially
-c) is [non-viral](http://en.wikipedia.org/wiki/Viral_license), that is, your derivative code doesn't *have to be* open source to use it
+* a) covers liability - my code should work, but I'm not liable if you do something stupid with it
+* b) allows you to copy, fork, and use the code, even commercially
+* c) is [non-viral](http://en.wikipedia.org/wiki/Viral_license), that is, your derivative code doesn't *have to be* open source to use it
 
 Other great licensing options for your own code: the BSD License, or the MIT License.
 
@@ -56,9 +59,9 @@ Copyright (c) 2012, Coder Cowboy, LLC. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:
-1. Redistributions of source code must retain the above copyright notice, this
+* 1. Redistributions of source code must retain the above copyright notice, this
 list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
+* 2. Redistributions in binary form must reproduce the above copyright notice,
 this list of conditions and the following disclaimer in the documentation
 and/or other materials provided with the distribution.
   
