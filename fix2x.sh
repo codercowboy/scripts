@@ -52,40 +52,47 @@ then
 	exit 1
 fi
 
+#make for's argument seperator newline only
+IFS=$'\n'
 
-for FILE in `find ${1} -type f`
+for FILE in `find ${1} -type f | egrep ".png|.jpg"`
 do
 	echo "Now processing file: ${FILE}"
 	# first let's figure out what the @2x file and the non-@2x file should be called
-	NORMAL_FILE=$FILE
-	TWOX_FILE=$FILE
+	NORMAL_FILE="$FILE"
+	TWOX_FILE="$FILE"
 	# string contains from: http://stackoverflow.com/questions/229551/string-contains-in-bash
 	# replace string stuff: http://tldp.org/LDP/abs/html/string-manipulation.html
 	if [[ "${FILE}" == *"@2x."* ]] #this is a 2x file
 	then	
-		NORMAL_FILE=${FILE/%@2x.png/.png}
-		NORMAL_FILE=${NORMAL_FILE/%@2x.jpg/.jpg}
-		echo "Creating ${NORMAL_FILE}"
-		cp ${FILE} ${NORMAL_FILE}
+		NORMAL_FILE="${FILE/%@2x.png/.png}"
+		NORMAL_FILE="${NORMAL_FILE/%@2x.jpg/.jpg}"
+		if test ! -e "${NORMAL_FILE}"
+		then
+			echo "Creating ${NORMAL_FILE}"
+			cp "${FILE}" "${NORMAL_FILE}"
+		fi
 	else #this is not a 2x file
-		TWOX_FILE=${FILE/%.png/@2x.png}
-		TWOX_FILE=${TWOX_FILE/%.jpg/@2x.jpg}
-		echo "CREATING ${TWOX_FILE}"
-		cp ${FILE} ${TWOX_FILE}
+		TWOX_FILE="${FILE/%.png/@2x.png}"
+		TWOX_FILE="${TWOX_FILE/%.jpg/@2x.jpg}"
+		if test ! -e "${TWOX_FILE}"
+		then
+			echo "CREATING ${TWOX_FILE}"
+			cp "${FILE}" "${TWOX_FILE}"
+		fi
 	fi
 	
-	WIDTH=`sips -g pixelWidth ${TWOX_FILE} | grep "Width:" | sed 's/.*: //'`
-	HEIGHT=`sips -g pixelHeight ${TWOX_FILE} | grep "Height:" | sed 's/.*: //'`	
+	WIDTH=`sips -g pixelWidth "${TWOX_FILE}" | grep "Width:" | sed 's/.*: //'`
+	HEIGHT=`sips -g pixelHeight "${TWOX_FILE}" | grep "Height:" | sed 's/.*: //'`	
 	echo "Original width: ${WIDTH}, height: ${HEIGHT}"
 
+	# bc examples: http://linux.byexamples.com/archives/42/command-line-calculator-bc/
 	NEW_WIDTH=`echo "${WIDTH} / 2" | bc`
 	NEW_HEIGHT=`echo "${HEIGHT} / 2" | bc`
 	echo "Small width: ${NEW_WIDTH}, height: ${NEW_HEIGHT}"
-	# bc examples: http://linux.byexamples.com/archives/42/command-line-calculator-bc/
-
+	
 	# sips examples: http://osxdaily.com/2012/11/25/batch-resize-a-group-of-pictures-from-the-command-line-with-sips/
-
-	sips -z ${NEW_HEIGHT} ${NEW_WIDTH} ${NORMAL_FILE}	
+	sips -z ${NEW_HEIGHT} ${NEW_WIDTH} "${NORMAL_FILE}"	
 done
-#first we're going to make sure we have @2x and non-@2x versions of each file
+
 
