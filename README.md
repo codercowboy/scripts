@@ -20,6 +20,7 @@ If you're interested in learning bash scripting, here are two resources to check
 What the scripts do
 ===================
 
+* bad2x.sh - list @2x image files with odd dimensions
 * diablo2-backup - a set of scripts to backup diablo2 character saves on windows, while you run it.
 * dircomplete.sh - adds a trailing slash "/" to passed in path if it does not already end in "/"
 * execeachline.sh - executes given script on each line of a file
