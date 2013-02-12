@@ -25,6 +25,7 @@ What the scripts do
 * execeachline.sh - executes given script on each line of a file
 * filesize.sh - file size display script
 * filesizetest.sh - compare file sizes script
+* fix2x.sh - generate @2x and non-@2x image assets for IOS projects
 * freespace.sh - disk free space display script
 * linecounter.sh - source code line counting script
 * listcopy.sh - copy files or folders specified in a text file
