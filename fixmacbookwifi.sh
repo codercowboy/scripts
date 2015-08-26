@@ -113,14 +113,15 @@ echo ""
 
 while true
 do
-	# try to ping the host once, redirect stderr to stdout with "2>&1" because we need to capture "unknown host" output from stderr
-	PING_OUTPUT=`ping -c 1 ${HOST} 2>&1`
+	# try to ping the host, redirect stderr to stdout with "2>&1" because we need to capture "unknown host" output from stderr
+	PING_OUTPUT=`ping -c 3 ${HOST} 2>&1`
 	# extract the first "1.542" out of example output: round-trip min/avg/max/stddev = 1.542/1.542/1.542/0.000 ms
 	PING_TIME_ELAPSED=`echo ${PING_OUTPUT} | grep round-trip | sed 's/.*= //' | sed 's/\/.*//'`
 	# extract the "0" from example output: "1 packets transmitted, 0 packets received, 100.0% packet loss" 
 	PING_PACKETS_RECEIVED=`echo ${PING_OUTPUT} | grep "packets received" | sed 's/.*transmitted, //' | sed 's/ packets.*//'`
 	PING_UNKNOWN_HOST_LINE=`echo ${PING_OUTPUT} | grep "cannot resolve"`
-	echo "Ping time: ${PING_TIME_ELAPSED}ms, packets received (should be 1): ${PING_PACKETS_RECEIVED}, (quit by pressing ctrl+c)"	
+	echo "Ping time: ${PING_TIME_ELAPSED}ms, packets received (should be more than 0): ${PING_PACKETS_RECEIVED}, (quit by pressing ctrl+c)"	
+	# if zero out of three ping packets made it back, or we have an "unknown host" error, reset bluetooth
 	if test "0" = "${PING_PACKETS_RECEIVED}" -o ! -z "${PING_UNKNOWN_HOST_LINE}"
 	then
 		echo "Detected offline, turning bluetooth off and on."
