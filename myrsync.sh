@@ -11,6 +11,9 @@
 #
 # UPDATES:
 #
+# 2014/12/26
+# - Quote $@ argument, so quoted inputs pass through as quoted to rsync.
+#
 # 2012/xx/xx
 #  - Initial version.
 #
@@ -55,4 +58,4 @@
 #stats - give some file transfer stats
 #--chmod=CHMOD - affect permissions
 
-rsync -vrthW --del --stats --progress --chmod=u=rwx "$1" "$2"
+rsync -vrthW --del --stats --progress --chmod=u=rwx "$@"
