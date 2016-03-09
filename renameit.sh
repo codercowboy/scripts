@@ -10,6 +10,10 @@
 ########################################################################
 #
 # UPDATES:
+# 2016/03/09
+#  - Don't rename files that already have the date in the filename.
+#  - Added counters / summary at end of run for sanity checking.
+#  - Fix bug with seconds being included in file date.
 # 2009/03/30
 #  - changed script to prepend date rather than replace original filename entirely
 # 2008/12/29
@@ -92,6 +96,10 @@ fi
 
 APPENDER="$2"
 
+CHANGED_FILE_COUNTER=0
+SKIPPED_FILE_ALREADY_RENAMED_COUNTER=0
+SKIPPED_FILE_NO_DATE=0
+
 FILE_COUNTER=1
 
 BASE_PATH="${1%*/}/" #this will put a / on the end of the path if there isnt one already
@@ -123,26 +131,30 @@ do
 	
 	if test -z "$FILE_DATE"
 	then
-		FILE_DATE=`find "$FILE" -printf "%TY%Tm%Td %TH%TM%TS"` #old find expression to 
+		#FILE_DATE=`find "$FILE" -printf "%TY%Tm%Td %TH%TM%TS"` #old find expression to 
 		    	
-		SECONDS_DECIMAL_PLACE=`expr index "$FILE_DATE" .`
+		#SECONDS_DECIMAL_PLACE=`expr index "$FILE_DATE" .`
 		    	
-		if [ $SECONDS_DECIMAL_PLACE -gt 0 ]
-		then
+		#if [ $SECONDS_DECIMAL_PLACE -gt 0 ]
+		#then
 			#there is a decimal place in this version of find's second operator
 			# remove the decimal and everything following the decimal
 
-			SECONDS_DECIMAL_PLACE=$(( SECONDS_DECIMAL_PLACE - 1 ))
-			FILE_DATE=`expr substr "$FILE_DATE" 1 $SECONDS_DECIMAL_PLACE`
+		#	SECONDS_DECIMAL_PLACE=$(( SECONDS_DECIMAL_PLACE - 1 ))
+		#	FILE_DATE=`expr substr "$FILE_DATE" 1 $SECONDS_DECIMAL_PLACE`
 			#echo "NEW FILE DATE: $FILE_DATE"
-	    	fi
+	    #	fi
+	    FILE_DATE=`stat -f "%Sm" -t "%Y%m%d %H%M%S" "$FILE"`
 	fi
 	
 	#if we still don't have a date, don't rename it..	    	    	   
 	
-	if test -z "$FILE_DATE"
-	then
+	if test -z "$FILE_DATE"; then
 		echo "  Not renaming file, we couldn't find a date to rename it with."
+		((SKIPPED_FILE_NO_DATE=SKIPPED_FILE_NO_DATE + 1))
+	elif echo "${ORIGINAL_BASENAME}" | grep -q "${FILE_DATE}"; then
+		echo "  Not renaming file, it already contains the date: ${FILE_DATE}"
+		((SKIPPED_FILE_ALREADY_RENAMED_COUNTER=SKIPPED_FILE_ALREADY_RENAMED_COUNTER + 1))
 	else
 		NEW_FILE="${BASE_PATH}${FILE_DATE}${APPENDER} ${ORIGINAL_BASENAME}"
 		
@@ -164,9 +176,22 @@ do
 		echo "    to: $NEW_FILE"
 		echo
 		
-		mv "$FILE" "$NEW_FILE"	
-	
-	fi
-	
-	
+		mv "$FILE" "$NEW_FILE"
+		((CHANGED_FILE_COUNTER=CHANGED_FILE_COUNTER + 1))		
+	fi	
 done
+
+FILES_COUNT_BEFORE=`echo ${FILES} | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
+FILES_COUNT_AFTER=`find "$1" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32' | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
+
+echo ""
+echo "Processed ${FILES_COUNT_BEFORE} files."
+echo "  Files Changed: ${CHANGED_FILE_COUNTER}"
+echo "  Files Skipped, Already Have Date: ${SKIPPED_FILE_ALREADY_RENAMED_COUNTER}"
+echo "  Files Skipped, Couldn't determine date: ${SKIPPED_FILE_NO_DATE}"
+echo "  Files before starting: ${FILES_COUNT_BEFORE}"
+echo "  Files after renaming: ${FILES_COUNT_AFTER}"
+echo ""
+if test ${FILES_COUNT_BEFORE} -ne ${FILES_COUNT_AFTER}; then
+	echo "WARNING: File count differs after rename operation, were some deleted?"
+fi
