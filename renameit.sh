@@ -104,6 +104,8 @@ FILE_COUNTER=1
 
 BASE_PATH="${1%*/}/" #this will put a / on the end of the path if there isnt one already
 
+FILES_COUNT_BEFORE=`find "$1" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32' | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
+
 #
 # thanks to http://www.vasudevaservice.com/documentation/how-to/converting_dos_and_unix_text_files
 # for help w/ dos2unix to TR convert tip
@@ -181,7 +183,7 @@ do
 	fi	
 done
 
-FILES_COUNT_BEFORE=`echo ${FILES} | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
+
 FILES_COUNT_AFTER=`find "$1" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32' | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
 
 echo ""
