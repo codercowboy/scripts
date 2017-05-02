@@ -3,6 +3,7 @@
 ########################################################################
 #
 # renameit.sh - rename image files w/ a timestamp based on last modified time
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,6 +11,7 @@
 ########################################################################
 #
 # UPDATES:
+#
 # 2016/03/09
 #  - Don't rename files that already have the date in the filename.
 #  - Added counters / summary at end of run for sanity checking.

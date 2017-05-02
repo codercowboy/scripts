@@ -3,6 +3,7 @@
 ########################################################################
 #
 # md5tool.sh - md5 digest creation & validation script
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -11,23 +12,32 @@
 #
 # UPDATES:
 # 
+# 2017/05/02
+# - Removed "Update" mode due to numerous bugs. I'll rewrite it in Java.
+#
 # 2016/04/14
 # - Added "Update", "Remove All", "Join All" modes.
 # - Cleaned up code a bit.
 # - NOTE: I've only tested this iteration on OSX, email me if problems.
+#
 # 2009/05/31
 #  - Added "CREATEFOREACH" mode.
+#
 # 2007/02/12
 #  - Moved the "creating md5" message below the code that removes pre-exising sumfiles
+#
 # 2006/10/26
 #  - performance w/ openssl is horrible due to bash for loop, back to md5sum
+#
 # 2006/10/25
 #  - rewrote to use openssl instead of md5sum
 #  - script is now more verbose about whats going on & errors that occur
 #  - added some error checking
 #  - updated usage notes
+#
 # 2006/10/??
 #  - merged both md5 scripts into md5tool.sh
+#
 # 2005/??/??
 #  - initial version (two seperate files, one that checks, one that creates)
 #
@@ -91,7 +101,7 @@ function print_usage() {
   echo
   echo "OPERATIONS"
   echo "  CREATE - create a $md5filename containing md5 values of files found in PATH"
-  echo "  UPDATE - update ${md5filename} and compare with previous checksums"
+#  echo "  UPDATE - update ${md5filename} and compare with previous checksums"
   echo "  CREATEFOREACH - create a $md5filename for each child directory of PATH"
   echo "  CHECK - check the values in $md5filename against md5 values of files found in PATH"
   echo "  CHECKALL - check all $md5filename files found in PATH"
@@ -258,6 +268,7 @@ function diff_md5() {
     # reformat saved lines from original diff to be checksum first
     # example line before: ./testfile0a.bin ### < b6eae282641b9f697834701afee923fb
     # example line after: b6eae282641b9f697834701afee923fb ### ./testfile0a.bin ### < 
+    # BUG: shouldn't we sort here before outputing to DIFF_FILE ??
     cat "${DIFF_FILE_TMP}" | sed 's/\(.*### . \)\(.*\)/\2 ### \1/' > "${DIFF_FILE}"
     rm "${DIFF_FILE_TMP}"  
 
@@ -478,8 +489,8 @@ elif test "$1" = "CHECKALL"; then
   check_all_md5 "$2"
 elif test "$1" = "UNITTEST"; then
   run_test "$2"
-elif test "$1" = "UPDATE"; then
-  update_md5 "$2"
+#elif test "$1" = "UPDATE"; then
+#  update_md5 "$2"
 elif test "$1" = "JOINALL"; then
   join_all_md5 "$2" "false"
 elif test "$1" = "JOINALLREMOVEOLD"; then
