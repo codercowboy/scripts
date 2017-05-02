@@ -3,6 +3,7 @@
 ########################################################################
 #
 # myrsync.sh - a quick wrapper for rsync with sane options on by default
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
