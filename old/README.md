@@ -1,7 +1,9 @@
-Coder Cowboy Scripts
+*OLD* Coder Cowboy Scripts
 ====================
 
-Various bash scripts to help you on your way.
+Various *OLD* bash scripts to help you on your way.
+
+NOTE: These scripts aren't useful to Jason anymore, hence the *OLD* folder they're in.
 
 * written by Jason Baker ([jason@onejasonforsale.com](mailto:jason@onejasonforsale.com))
 * on github: [https://github.com/codercowboy/scripts](https://github.com/codercowboy/scripts)
@@ -20,15 +22,28 @@ If you're interested in learning bash scripting, here are two resources to check
 What the scripts do
 ===================
 
-* fixnefs.sh - fix mismatched NEF/JPG file dates that result from renameit.sh
-* laptopbackup.sh - personal laptop backup script
-* md5tool.sh - md5 digest creation & validation script
+* bad2x.sh - list @2x image files with odd dimensions
+* diablo2-backup - backup diablo2 character saves on windows, while you run it.
+* dircomplete.sh - adds a trailing slash "/" to passed in path if it does not already end in "/"
+* execeachline.sh - executes given script on each line of a file
+* filesize.sh - file size display
+* filesizecheck.sh - shows directory sizes for directories listed in script
+* filesizetest.sh - compare file sizes
+* fix2x.sh - generate @2x and non-@2x image assets for IOS projects
+* fixmacbookwifi.sh - a script that attempts to "fix" macbook wifi problems by toggling bluetooth on/off periodically
+* freespace.sh - display disk free space
+* linecounter.sh - source code line counting script
+* listcopy.sh - copy files or folders specified in a text file
+* maillog.sh - mail a log to yourself using ssmpt
+* myrsync.sh - wrapper for rsync with sane options on by default
+* osxrotatelogs.sh - archive a gzipped timestamped version of logs
+* processdiff.sh - print a user friendly version of diff's output
 * renameit.sh - rename image files w/ a timestamp based on last modified time
+* rsynctest.sh - conversion of dry-run rsync diffs to human readable format
+* snapshot.sh - creates and removes dated snapshot directories
 
 Notes
 =====
-
-Note: There are various *OLD* scripts that I don't use anymore moved into the 'old' directory.
 
 If you have any questions, comments, kudos, criticisms about any of the scripts, e-mail me. 
 
