@@ -2,7 +2,9 @@
 
 ########################################################################
 #
-# myrsync.sh - a quick wrapper for rsync with sane options on by default
+# filesizecheck.sh - simple script I use to routinely monitor file
+#   system usage.
+#   
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -11,11 +13,8 @@
 #
 # UPDATES:
 #
-# 2014/12/26
-# - Quote $@ argument, so quoted inputs pass through as quoted to rsync.
-#
-# 2012/xx/xx
-#  - Initial version.
+# 2017/05/02
+#  - Initial version
 #
 ########################################################################
 #
@@ -43,19 +42,47 @@
 # The views and conclusions contained in the software and documentation are those
 # of the authors and should not be interpreted as representing official policies,
 # either expressed or implied.
+#
 ########################################################################
 
 
+if [ `whoami` != "root" ]
+then
+	echo "must be run as root."
+	exit 1
+fi
 
-#v - verbose
-#t - preserve times
-#r - recursive
-#n - dry run
-#W - whole file transfer rather than aprtial
-#del - delete during xfer
-#h - human readable
-#progress - show progress during transfer
-#stats - give some file transfer stats
-#--chmod=CHMOD - affect permissions
 
-rsync -vrthW --del --stats --progress --chmod=u=rwx "$@"
+function docheck {
+	echo "checking: ${1}"
+	du -k ${1}
+	echo "finished checking: ${1}"
+}
+
+docheck /Applications
+docheck /Library
+docheck /Network
+docheck /System
+docheck /Users
+docheck /bin
+docheck /etc
+docheck /home
+docheck /net
+docheck /sbin
+docheck /tmp
+docheck /usr
+docheck /var
+
+#don't check these
+#docheck /.DocumentRevisions-V100
+#docheck /.MobileBackups
+#docheck /.Spotlight-V100
+#docheck /.Trashes
+#docheck /.file
+#docheck /.fseventsd
+#docheck /.vol
+#docheck /cores
+#docheck /dev
+#docheck /mach_kernel
+#docheck /Volumes
+#docheck /private

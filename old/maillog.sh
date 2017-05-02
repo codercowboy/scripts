@@ -2,7 +2,8 @@
 
 ########################################################################
 #
-# bad2x.sh - list @2x image files with odd dimensions
+# maillog.sh - a script to mail a log to yourself using ssmpt
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -11,12 +12,19 @@
 #
 # UPDATES:
 #
-# 2013/02/12
+# 200x/xx/xx
 #  - Initial version
 #
 ########################################################################
 #
-# Copyright (c) 2013 Coder Cowboy, LLC. All rights reserved.
+# To use this, you'll need to change the email info in the script by the 
+# "change these!" comment below. 
+#
+# You'll also need to install and setup ssmtp on your system.
+#
+########################################################################
+#
+# Copyright (c) 2012, Coder Cowboy, LLC. All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -43,28 +51,25 @@
 #
 ########################################################################
 
-if test -z "${1}"
+#TODO: change these! 
+EMAIL_ADDRESS="your@emailaddress.com"
+EMAIL_ACCOUNT_NAME="youraccountname"
+EMAIL_ACCOUNT_PASSWORD="youraccountpassword"
+
+if test "$1" = "--help" -o -z "$1"
 then
-	echo "USAGE: bad2x.sh directory"
-	exit 1
-fi
-
-#make for's argument seperator newline only
-IFS=$'\n'
-
-echo "The following @2x files have odd dimensions, and will resize by half poorly."
-
-for FILE in `find ${1} -type f | grep "@2x"`
-do
-	WIDTH=`sips -g pixelWidth "${FILE}" | grep "Width:" | sed 's/.*: //'`
-	HEIGHT=`sips -g pixelHeight "${FILE}" | grep "Height:" | sed 's/.*: //'`	
-	WIDTH_IS_ODD=`echo "${WIDTH} % 2" | bc`
-	HEIGHT_IS_ODD=`echo "${HEIGHT} % 2" | bc`
-	if test ${WIDTH_IS_ODD} -eq 1 -o ${HEIGHT_IS_ODD} -eq 1
+	echo "Usage: maillog [file] [optional subject]"
+	echo " where [file] is the log to email"
+else
+	echo "[Mail Log] (file: $1 )"
+	
+	fromline="From: ${EMAIL_ADDRESS}"
+	toline="To: ${EMAIL_ADDRESS}"
+	subjectline="Subject: Mailing $1"
+	if test ! -z $2
 	then
-		echo "${FILE} ${WIDTH}x${HEIGHT}"
-	fi	
-done
-
-
-
+		subjectline="$2"
+	fi
+		
+	(echo -e "$toline\n$fromline\n$subjectline\n\n\n"; cat "$1") | ssmtp -au${EMAIL_ACCOUNT_NAME} -ap${EMAIL_ACCOUNT_PASSWORD} ${EMAIL_ADDRESS}
+fi

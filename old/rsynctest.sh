@@ -2,7 +2,9 @@
 
 ########################################################################
 #
-# execeachline.sh - executes given script on each line of a file
+# rsynctest.sh - converts rsync dry-run comparison output to human
+#   readable format
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -11,8 +13,8 @@
 #
 # UPDATES:
 #
-# 2010/08/08
-#  - Initial version.
+# 2017/05/02
+#  - Initial version
 #
 ########################################################################
 #
@@ -43,21 +45,13 @@
 #
 ########################################################################
 
-if test -z "$1"
-then
-	echo "Usage: execeachline [list of arguments file] [script]"
-	echo "  where the list of arguments file is a text file with one argument per line,"
-	echo "  and [script] is the script to execute"
-else
-  
-  LINESTOEXEC=`cat "$1" | dos2unix | tr \\\n ";"`
-  
-  #make for's argument seperator a semicolon rather than any whitespace
-  IFS=";"
-  
-  for LINE in $LINESTOEXEC
-  do
-    $2 "$LINE"
-  done
+#from: http://unix.stackexchange.com/questions/59336/compare-directories-but-not-content-of-files
 
-fi
+#example output
+#*deleting   removedfile   (file in target but not in source)
+#.d..t...... ./            (directory with different timestamp)
+#>f.st...... modifiedfile  (file with different size and timestamp)
+#>f+++++++++ newfile       (file in source but not in target)
+#.f          samefile      (file that has same metadata. only with -ii)
+
+rsync -n -aii --delete "$@" | grep -v "\.f " | grep -v "\.d " | grep -v "f\.\." | grep -v '\.d\.\.' | sed 's/.f\+* /newfile /'

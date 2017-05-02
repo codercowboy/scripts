@@ -3,6 +3,7 @@
 #####################################################################
 #
 # listcopy.sh - copy files or folders specified in a text file
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,9 +11,11 @@
 #####################################################################
 #
 # UPDATES:
+#
 # 2006/10/25
 #  - changed dos2unix usage to tr
 #  - updated usage notes
+#
 # 2006/10/13
 #  - initial version
 #

@@ -2,7 +2,8 @@
 
 ########################################################################
 #
-# fix2x.sh - generate @2x and non-@2x image assets for IOS projects
+# myrsync.sh - a quick wrapper for rsync with sane options on by default
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -11,12 +12,15 @@
 #
 # UPDATES:
 #
-# 2013/02/12
-#  - Initial version
+# 2014/12/26
+# - Quote $@ argument, so quoted inputs pass through as quoted to rsync.
+#
+# 2012/xx/xx
+#  - Initial version.
 #
 ########################################################################
 #
-# Copyright (c) 2013 Coder Cowboy, LLC. All rights reserved.
+# Copyright (c) 2012, Coder Cowboy, LLC. All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -40,59 +44,19 @@
 # The views and conclusions contained in the software and documentation are those
 # of the authors and should not be interpreted as representing official policies,
 # either expressed or implied.
-#
 ########################################################################
 
-if test -z "${1}"
-then
-	echo "USAGE: fix2x.sh directory"
-	echo ""
-	echo "fix2x.sh automatically makes @2x and non-@2x images from a directory"	
-	echo "files in your directory should end with .png or .jpg"
-	exit 1
-fi
-
-#make for's argument seperator newline only
-IFS=$'\n'
-
-for FILE in `find ${1} -type f | egrep ".png|.jpg"`
-do
-	echo "Now processing file: ${FILE}"
-	# first let's figure out what the @2x file and the non-@2x file should be called
-	NORMAL_FILE="$FILE"
-	TWOX_FILE="$FILE"
-	# string contains from: http://stackoverflow.com/questions/229551/string-contains-in-bash
-	# replace string stuff: http://tldp.org/LDP/abs/html/string-manipulation.html
-	if [[ "${FILE}" == *"@2x."* ]] #this is a 2x file
-	then	
-		NORMAL_FILE="${FILE/%@2x.png/.png}"
-		NORMAL_FILE="${NORMAL_FILE/%@2x.jpg/.jpg}"
-		if test ! -e "${NORMAL_FILE}"
-		then
-			echo "Creating ${NORMAL_FILE}"
-			cp "${FILE}" "${NORMAL_FILE}"
-		fi
-	else #this is not a 2x file
-		TWOX_FILE="${FILE/%.png/@2x.png}"
-		TWOX_FILE="${TWOX_FILE/%.jpg/@2x.jpg}"
-		if test ! -e "${TWOX_FILE}"
-		then
-			echo "CREATING ${TWOX_FILE}"
-			cp "${FILE}" "${TWOX_FILE}"
-		fi
-	fi
-	
-	WIDTH=`sips -g pixelWidth "${TWOX_FILE}" | grep "Width:" | sed 's/.*: //'`
-	HEIGHT=`sips -g pixelHeight "${TWOX_FILE}" | grep "Height:" | sed 's/.*: //'`	
-	echo "Original width: ${WIDTH}, height: ${HEIGHT}"
-
-	# bc examples: http://linux.byexamples.com/archives/42/command-line-calculator-bc/
-	NEW_WIDTH=`echo "${WIDTH} / 2" | bc`
-	NEW_HEIGHT=`echo "${HEIGHT} / 2" | bc`
-	echo "Small width: ${NEW_WIDTH}, height: ${NEW_HEIGHT}"
-	
-	# sips examples: http://osxdaily.com/2012/11/25/batch-resize-a-group-of-pictures-from-the-command-line-with-sips/
-	sips -z ${NEW_HEIGHT} ${NEW_WIDTH} "${NORMAL_FILE}"	
-done
 
 
+#v - verbose
+#t - preserve times
+#r - recursive
+#n - dry run
+#W - whole file transfer rather than aprtial
+#del - delete during xfer
+#h - human readable
+#progress - show progress during transfer
+#stats - give some file transfer stats
+#--chmod=CHMOD - affect permissions
+
+rsync -vrthW --del --stats --progress --chmod=u=rwx "$@"

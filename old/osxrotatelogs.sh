@@ -3,6 +3,7 @@
 ########################################################################
 #
 # osxrotatelogs.sh - archive a gzipped timestamped version of logs
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -86,7 +87,7 @@ then
     print_usage "Archive path is not writable: $2"
 fi 
 
-echo "[osrotatelogs.sh]"
+echo "[osxrotatelogs.sh]"
 echo " logs directory: $1"
 echo " archive directory: $2"
 

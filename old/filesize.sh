@@ -2,7 +2,8 @@
 
 ########################################################################
 #
-# linecounter.sh - source code line counting script
+# filesize.sh - file size display script
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,9 +11,11 @@
 ########################################################################
 #
 # UPDATES:
+#
 # 2006/10/25
-#  - updated usage info
-# 2006/9/14
+#  - cleaned up usage
+#
+# 2006/10/13
 #  - initial version
 #
 ########################################################################
@@ -44,37 +47,18 @@
 #
 ########################################################################
 
-if test -z $1
+if test -z "$1"
 then
-	echo "linecounter.sh is a line counting script"
-  	echo
-	echo "USAGE:"
-	echo "  linecounter.sh PATH"
 	echo
-	echo "ARGUMENTS:"
-	echo "  PATH - the path to find files to count lines for"
-  	exit
+	echo "filesize.sh displays the space usage for the file or directory you specify"
+	echo
+	echo "USAGE"
+	echo "  filesize.sh FILE_OR_DIRECTORY"
+	echo
+	echo "ARGUMENTS"
+	echo "  FILE_OR_DIRECTORY - the file or directory to display space usage for"
+	echo
+	exit
 fi
 
-totallines=0
-
-#make for's argument seperator newline only
-IFS=$'\n'
-
-for file in `find "$1" -type f`
-do
-  	echo -n "$file "
-
-  	#cat echoes the file
-  	#the first grep command filters lines without alphanumeric characters
-  	# .. which is probably a decent way to determine a line of code
-  	# .. it will at least filter whitespace lines, and empty lines with brackets
-  	#the second grep command filters lines that start with a * or # or // or /*
-  	#the wc command counts the lines (we could also use -c on grep for efficiency..)
-
-	filelines=`cat "$file" | grep -e [[:alnum:]] | grep -v "^[[:space:]]*[\*|#|//|/\*]" | wc -l`
-	echo $filelines
-	let totallines=$totallines+$filelines
-done
-echo "Total Lines $totallines"
-
+du -s -h "$1" | awk '{print $1}'

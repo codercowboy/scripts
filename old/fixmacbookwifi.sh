@@ -3,6 +3,7 @@
 ########################################################################
 #
 # fixmacbookwifi.sh - Auto power cycle bluetooth when wifi connectivity times out.
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
