@@ -3,6 +3,7 @@
 ########################################################################
 #
 # renameit.sh - rename image files w/ a timestamp based on last modified time
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,27 +11,36 @@
 ########################################################################
 #
 # UPDATES:
+#
 # 2016/03/09
 #  - Don't rename files that already have the date in the filename.
 #  - Added counters / summary at end of run for sanity checking.
 #  - Fix bug with seconds being included in file date.
+#
 # 2009/03/30
 #  - changed script to prepend date rather than replace original filename entirely
+#
 # 2008/12/29
 #  - changed script to use jhead instead of find if jhead is available
+#
 # 2008/7/6
 #  - added appender argument
+#
 # 2008/5/19
 #  - fixed bug where some versions of find have decimal places in 
 #    seconds field, now decimal and following digits are truncated.
+#
 # 2007/11/17
 #  - safer file existence checking
+#
 # 2007/02/12
 #  - fixed bug with multiple periods in file name or path name
+#
 # 2006/10/25
 #  - updated usage info
 #  - replaced dos2unix usage w/ tr
 #  - cleaned up some test statements
+#
 # 2006/9/14
 #  - initial version
 #
