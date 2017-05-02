@@ -4,6 +4,7 @@
 #
 # dircomplete.sh - adds a trailing slash "/" to passed in path if it 
 #                  does not already end in "/"
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -12,8 +13,9 @@
 #
 # UPDATES:
 #
-# 200x/xx/xx
+# 20xx/xx/xx
 #  - Initial version
+#
 ########################################################################
 #
 # Copyright (c) 2012, Coder Cowboy, LLC. All rights reserved.

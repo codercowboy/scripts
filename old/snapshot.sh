@@ -3,6 +3,7 @@
 ########################################################################
 #
 # snapshot.sh creates and removes dated snapshot directories
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,10 +11,13 @@
 ########################################################################
 #
 # UPDATES:
+#
 # 2007/1/27
 #  - fixed some issue with unquoted arguments containing spaces
+#
 # 2006/10/25
 #  - updated usage
+#
 # 2006/10/12
 #  - initial version
 #

@@ -2,7 +2,8 @@
 
 ########################################################################
 #
-# processdiff.sh - print a user friendly version of diff's output
+# freespace.sh - disk free space display script
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,8 +11,10 @@
 ########################################################################
 #
 # UPDATES:
+# 2006/10/25
+#  - updated usage notes
 #
-# 20??/??/??
+# 2006/10/13
 #  - initial version
 #
 ########################################################################
@@ -43,114 +46,17 @@
 #
 ########################################################################
 
-function print_usage()
-{
-	echo "processdiff.sh - print a user friendly version of diff's output"
-	echo ""
-	echo "USAGE:"
-	echo "  processdiff.sh FILE1 FILE2"
-	echo ""
-	echo "    where FILE1 and FILE2 are the files to compare"
-	echo ""
-	echo "EXIT STATUS:"
-	echo "  exit status will be 0 if files contain no differences"
-	echo "  exit status will be non-zero if an error occurs or files contain differences"
-	echo ""
-	echo "ERROR:"
-	echo "  $1"
-}
-
-function report_new_line()
-{
-	echo "New line in file 2: $1"
-}
-
-function report_deleted_line()
-{
-	echo "Deleted Line in File 1: $1"
-}
-
-function report_line_difference()
-{
-	echo "Line difference.."
-	echo " File1: $1"
-	echo " File2: $2"
-}
-
-function diff_files()
-{
-	DIFFOUTPUT=`diff "$1" "$2"`
-
-	#TODO: check to make sure diff completed succesfully
-
-	#make for's argument seperator newline only
-	IFS=$'\n'
-
-	DIFFEXITSTATUS=0 #1 signifies files are different
-
-	LINE1=""
-	LINE2=""
-
-	for LINE in $DIFFOUTPUT
-	do
-		FIRSTCHAR=${LINE:0:1}
-		case "$FIRSTCHAR" in
-
-			 "<" )
-				LINE1="$LINE"
-				DIFFEXITSTATUS=1
-			 ;;
-
-			 ">" )
-				LINE2="$LINE"
-				DIFFEXITSTATUS=1
-			 ;;
-
-			 "-" )
-				#do nothing in the "---" diff lines
-			 ;;
-
-			 * ) #catch all for everything else
-				 if test ! -z "$LINE1" -a ! -z "$LINE2" #lines differ
-				 then
-					report_line_difference "$LINE1" "$LINE2"
-				 elif test ! -z "$LINE1" -a -z "$LINE2" #line1 was deleted
-				 then
-					report_deleted_line "$LINE1"
-				 elif test -z "$LINE1" -a ! -z "$LINE2" #line2 is new
-				 then
-					report_new_line "$LINE2"
-				 fi
-
-				 #reset the line variables
-				 LINE1=""
-				 LINE2=""
-
-			 ;;
-
-		esac
-	done
-
-	return $DIFFEXITSTATUS
-}
-
-if test -z "$1" -o -z "$2"
+if test -z "$1"
 then
-	print_usage "Invalid number of arguments specified"
-	exit 1
+	echo "freespace.sh displays the space free on a drive you specify"
+	echo
+	echo "USAGE"
+	echo "  freespace.sh DRIVE"
+	echo
+	echo "ARGUMENTS"
+	echo "  DRIVE - the drive to display free space for"
+	echo
+	exit
 fi
 
-if test ! -r "$1"
-then
-	print_usage "Cannot open file for read: $1"
-	exit 1
-fi
-
-if test ! -r "$2"
-then
-	print_usage "Cannot open file for read: $2"
-	exit 1
-fi
-
-diff_files "$1" "$2"
-exit $?
+df -h "$1" | awk '{print $4}' | grep -E -o '[0-9]+([\.][0-9]+)?[G|K|M]?'

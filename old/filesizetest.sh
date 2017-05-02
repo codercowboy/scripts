@@ -3,6 +3,7 @@
 ########################################################################
 #
 # filesizetest.sh - compare file sizes script
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,8 +11,10 @@
 ########################################################################
 #
 # UPDATES:
+#
 # 2006/10/25
 #  - cleaned up usage
+#
 # 2006/10/12
 #  - initial version
 #

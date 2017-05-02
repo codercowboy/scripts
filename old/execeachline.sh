@@ -2,7 +2,8 @@
 
 ########################################################################
 #
-# filesize.sh - file size display script
+# execeachline.sh - executes given script on each line of a file
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,10 +11,9 @@
 ########################################################################
 #
 # UPDATES:
-# 2006/10/25
-#  - cleaned up usage
-# 2006/10/13
-#  - initial version
+#
+# 2010/08/08
+#  - Initial version.
 #
 ########################################################################
 #
@@ -46,16 +46,19 @@
 
 if test -z "$1"
 then
-	echo
-	echo "filesize.sh displays the space usage for the file or directory you specify"
-	echo
-	echo "USAGE"
-	echo "  filesize.sh FILE_OR_DIRECTORY"
-	echo
-	echo "ARGUMENTS"
-	echo "  FILE_OR_DIRECTORY - the file or directory to display space usage for"
-	echo
-	exit
-fi
+	echo "Usage: execeachline [list of arguments file] [script]"
+	echo "  where the list of arguments file is a text file with one argument per line,"
+	echo "  and [script] is the script to execute"
+else
+  
+  LINESTOEXEC=`cat "$1" | dos2unix | tr \\\n ";"`
+  
+  #make for's argument seperator a semicolon rather than any whitespace
+  IFS=";"
+  
+  for LINE in $LINESTOEXEC
+  do
+    $2 "$LINE"
+  done
 
-du -s -h "$1" | awk '{print $1}'
+fi

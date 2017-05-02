@@ -2,7 +2,9 @@
 
 ########################################################################
 #
-# bad2x.sh - list @2x image files with odd dimensions
+# filesizecheck.sh - simple script I use to routinely monitor file
+#   system usage.
+#   
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -11,12 +13,12 @@
 #
 # UPDATES:
 #
-# 2013/02/12
+# 2017/05/02
 #  - Initial version
 #
 ########################################################################
 #
-# Copyright (c) 2013 Coder Cowboy, LLC. All rights reserved.
+# Copyright (c) 2012, Coder Cowboy, LLC. All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -43,28 +45,44 @@
 #
 ########################################################################
 
-if test -z "${1}"
+
+if [ `whoami` != "root" ]
 then
-	echo "USAGE: bad2x.sh directory"
+	echo "must be run as root."
 	exit 1
 fi
 
-#make for's argument seperator newline only
-IFS=$'\n'
 
-echo "The following @2x files have odd dimensions, and will resize by half poorly."
+function docheck {
+	echo "checking: ${1}"
+	du -k ${1}
+	echo "finished checking: ${1}"
+}
 
-for FILE in `find ${1} -type f | grep "@2x"`
-do
-	WIDTH=`sips -g pixelWidth "${FILE}" | grep "Width:" | sed 's/.*: //'`
-	HEIGHT=`sips -g pixelHeight "${FILE}" | grep "Height:" | sed 's/.*: //'`	
-	WIDTH_IS_ODD=`echo "${WIDTH} % 2" | bc`
-	HEIGHT_IS_ODD=`echo "${HEIGHT} % 2" | bc`
-	if test ${WIDTH_IS_ODD} -eq 1 -o ${HEIGHT_IS_ODD} -eq 1
-	then
-		echo "${FILE} ${WIDTH}x${HEIGHT}"
-	fi	
-done
+docheck /Applications
+docheck /Library
+docheck /Network
+docheck /System
+docheck /Users
+docheck /bin
+docheck /etc
+docheck /home
+docheck /net
+docheck /sbin
+docheck /tmp
+docheck /usr
+docheck /var
 
-
-
+#don't check these
+#docheck /.DocumentRevisions-V100
+#docheck /.MobileBackups
+#docheck /.Spotlight-V100
+#docheck /.Trashes
+#docheck /.file
+#docheck /.fseventsd
+#docheck /.vol
+#docheck /cores
+#docheck /dev
+#docheck /mach_kernel
+#docheck /Volumes
+#docheck /private

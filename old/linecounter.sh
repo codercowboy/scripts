@@ -2,7 +2,8 @@
 
 ########################################################################
 #
-# maillog.sh - a script to mail a log to yourself using ssmpt
+# linecounter.sh - source code line counting script
+#
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
 #   more info: http://www.codercowboy.com
@@ -10,16 +11,11 @@
 ########################################################################
 #
 # UPDATES:
+# 2006/10/25
+#  - updated usage info
 #
-# 200x/xx/xx
-#  - Initial version
-#
-########################################################################
-#
-# To use this, you'll need to change the email info in the script by the 
-# "change these!" comment below. 
-#
-# You'll also need to install and setup ssmtp on your system.
+# 2006/9/14
+#  - initial version
 #
 ########################################################################
 #
@@ -50,25 +46,37 @@
 #
 ########################################################################
 
-#TODO: change these! 
-EMAIL_ADDRESS="your@emailaddress.com"
-EMAIL_ACCOUNT_NAME="youraccountname"
-EMAIL_ACCOUNT_PASSWORD="youraccountpassword"
-
-if test "$1" = "--help" -o -z "$1"
+if test -z $1
 then
-	echo "Usage: maillog [file] [optional subject]"
-	echo " where [file] is the log to email"
-else
-	echo "[Mail Log] (file: $1 )"
-	
-	fromline="From: ${EMAIL_ADDRESS}"
-	toline="To: ${EMAIL_ADDRESS}"
-	subjectline="Subject: Mailing $1"
-	if test ! -z $2
-	then
-		subjectline="$2"
-	fi
-		
-	(echo -e "$toline\n$fromline\n$subjectline\n\n\n"; cat "$1") | ssmtp -au${EMAIL_ACCOUNT_NAME} -ap${EMAIL_ACCOUNT_PASSWORD} ${EMAIL_ADDRESS}
+	echo "linecounter.sh is a line counting script"
+  	echo
+	echo "USAGE:"
+	echo "  linecounter.sh PATH"
+	echo
+	echo "ARGUMENTS:"
+	echo "  PATH - the path to find files to count lines for"
+  	exit
 fi
+
+totallines=0
+
+#make for's argument seperator newline only
+IFS=$'\n'
+
+for file in `find "$1" -type f`
+do
+  	echo -n "$file "
+
+  	#cat echoes the file
+  	#the first grep command filters lines without alphanumeric characters
+  	# .. which is probably a decent way to determine a line of code
+  	# .. it will at least filter whitespace lines, and empty lines with brackets
+  	#the second grep command filters lines that start with a * or # or // or /*
+  	#the wc command counts the lines (we could also use -c on grep for efficiency..)
+
+	filelines=`cat "$file" | grep -e [[:alnum:]] | grep -v "^[[:space:]]*[\*|#|//|/\*]" | wc -l`
+	echo $filelines
+	let totallines=$totallines+$filelines
+done
+echo "Total Lines $totallines"
+
