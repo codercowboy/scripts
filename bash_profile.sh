@@ -78,6 +78,25 @@ function my_rsync_test() {
 	rsync -n -aii --delete "$@" | grep -v "\.f " | grep -v "\.d " | grep -v "f\.\." | grep -v '\.d\.\.' | sed 's/.f\+* /newfile /'
 }
 
+# from: http://www.linuxproblem.org/art_9.html
+function ssh_setup_passwordless() { 
+	# create the key
+	ssh-keygen -t dsa -q -N "" -f ~/.ssh/id_dsa
+
+	HOST_PUBLIC_KEY=`cat ~/.ssh/id_dsa.pub`
+
+	REMOTE_COMMAND="mkdir -p ~/.ssh; 
+		echo \"${HOST_PUBLIC_KEY}\" >> ~/.ssh/authorized_keys;
+		chmod 644 ~/.ssh/authorized_keys;"
+
+	echo "Enter your password for the remote host, we need this to copy your public key to the remote host with ssh."
+
+	ssh "${MY_USER}@${MY_SERVER}" "$REMOTE_COMMAND"
+
+	# another interesting shorthand version ..
+	#cat ~/.ssh/id_rsa.pub | ssh ${1} 'cat >> .ssh/authorized_keys'
+}
+
 ######################
 # VARIOUS OSX TRICKS #
 ######################
@@ -118,13 +137,5 @@ export EDITOR=vi # fight me.
 #export PATH=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/Library/PrivateFrameworks/DTDeviceKit.framework/Versions/A/Resources/:${PATH}
 # do this: sudo /usr/bin/xcode-select -switch /Applications/Xcode.app/Contents/Developer/
 # then set this..
-#
-########
-
-########
-#
-# Passwordless SSH crap that doesn't work. from: http://www.linuxproblem.org/art_9.html
-# 
-# doesn't work as alias: alias ssh_setup_passwordless="cat ~/.ssh/id_rsa.pub | ssh $1 'cat >> .ssh/authorized_keys'"
 #
 ########
