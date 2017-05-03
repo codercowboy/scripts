@@ -20,10 +20,13 @@ If you're interested in learning bash scripting, here are two resources to check
 What the scripts do
 ===================
 
+* backuptousb.sh - personal backup script for external drive backup
+* bash_profile.sh - env vars / env functions I use regularly
 * fixnefs.sh - fix mismatched NEF/JPG file dates that result from renameit.sh
 * laptopbackup.sh - personal laptop backup script
 * md5tool.sh - md5 digest creation & validation script
 * renameit.sh - rename image files w/ a timestamp based on last modified time
+* systembackup.sh - personal backup script for system files
 
 Notes
 =====
