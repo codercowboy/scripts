@@ -60,7 +60,9 @@ find "${TARGET_PATH}" -maxdepth 1 -mindepth 1 -print0 | xargs -0 rm -rf
 echo "[Copying System Files]"
 SYSTEM_PATH="${TARGET_PATH}/system files"
 mkdir -p "${SYSTEM_PATH}"
-cp /etc/paths "${SYSTEM_PATH}/" # this holds the path variable
+cp /etc/paths "${SYSTEM_PATH}/" # this holds the path variable for all users
+cp /etc/profile "${SYSTEM_PATH}/" # this runs for all users when they login for terminal
+cp /etc/bashrc "${SYSTEM_PATH}/"
 
 echo "[Backing up SVN]"
 

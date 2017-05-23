@@ -125,6 +125,8 @@ if test ${FLAG_BACKUP_LOCAL} = "true"; then
 	cp ${MY_USER_HOME}/.bash_profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp -r ${MY_USER_HOME}/.ssh ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp /etc/hosts ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp /etc/profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp /etc/paths ${LOCAL_RSYNC_TARGET_DIR}/misc/
 
 	echo "backing up code"
 	my_rsync ${MY_USER_HOME}/Documents/code/ ${LOCAL_RSYNC_TARGET_DIR}/code/
@@ -184,18 +186,20 @@ if test ${FLAG_BACKUP_USB} = "true"; then
 		else
 			echo "Backing up to USB drive: ${USB_DEST}"
 
-			mkdir -p "${USB_DEST}/laptop_backup/backup/"
-			my_rsync "${LOCAL_RSYNC_TARGET_DIR}/" "${USB_DEST}/laptop_backup/backup/"
-			
-			mkdir -p "${USB_DEST}/laptop_backup/Pictures/"
-			md5tool.sh CREATE "/Users/jason/Pictures"
-			my_rsync "/Users/jason/Pictures" "${USB_DEST}/laptop_backup/Pictures/"		
+			USB_BACKUP_DIR="${USB_DEST}/backup/laptop_backup/"
 
-			mkdir -p "${USB_DEST}/laptop_backup/Movies/"
-			md5tool.sh CREATE "/Users/jason/Movies"
-			my_rsync "/Users/jason/Movies" "${USB_DEST}/laptop_backup/Movies/"		
+			mkdir -p "${USB_BACKUP_DIR}/backup/"
+			my_rsync "${LOCAL_RSYNC_TARGET_DIR}/" "${USB_BACKUP_DIR}/backup/"
 			
-			md5tool.sh CHECKALL "${USB_DEST}/laptop_backup/"
+			mkdir -p "${USB_BACKUP_DIR}/Pictures/"
+			md5tool.sh CREATE "/Users/jason/Pictures"
+			my_rsync "/Users/jason/Pictures" "${USB_BACKUP_DIR}/Pictures/"		
+
+			mkdir -p "${USB_BACKUP_DIR}/Movies/"
+			md5tool.sh CREATE "/Users/jason/Movies"
+			my_rsync "/Users/jason/Movies" "${USB_BACKUP_DIR}/Movies/"		
+			
+			md5tool.sh CHECKALL "${USB_BACKUP_DIR}/"
 		fi
 	else
 		echo "Skipping backup to USB, could not find valid USB target to backup to."

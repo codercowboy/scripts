@@ -49,7 +49,7 @@
 ########################################################################
 
 export CODE=/Users/${MY_USER}/Documents/code
-export TOOLS=/Users${MY_USER}/Documents/tools
+export TOOLS=/Users/${MY_USER}/Documents/tools
 
 alias code='cd ${CODE}'
 alias tools='cd ${TOOLS}'
