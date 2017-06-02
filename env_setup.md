@@ -1,66 +1,140 @@
-install .bash_profile in users/jason
+JASON'S SYSTEM SETUP CHEAT SHEET
+================================
 
+This is Jason's reminder list of setup steps when setting up a new OSX system.
 
-#make root .bashrc point to jason .bash_profile:
+INITIAL SETUP
+=============
 
-(as root): ln -s /Users/jason/.bash_profile /var/root/.bashrc
+  * Backup old time machine disk
+  * Wipe hard drive, and turn disk encryption on
+  * Install OS 
+  * Install all system updates
+  * OS Settings Changes:
+    * Set time machine backup disk
+    * Disable local time machine snapshots with:
+      * sudo tmutil disablelocal
+    * Disable spotlight and siri
+    * Set Energy Settings as appropriate
+    * Enable screen sharing, remote access, and file sharing
+    * Fix mouse scroll direction
+    * Fix dock location
+    * Add internet accounts for mail/calendars/contacts
+    * Turn off bluetooth
+    * Add guest account
+    * Install printer
+    * Fine tune notifications
+    * Add common apps to stick on dock
+    * Enable hidden files in finder with:
+      * defaults write com.apple.finder AppleShowAllFiles YES
+    * Install open file/folder with sublimetext scripts
+  * Install JDK, Eclipse, Dev Tools
+  * Setup backup directories 
+  * Install homebrew, then these: rclone, wget, coreutils
+  * Configure rclone with 'rclone config'
+  * Soft link md5sum with:
+    * sudo ln -s /usr/local/opt/coreutils/libexec/gnubin/md5sum /usr/local/bin/md5sum
+  * Restore system files (jason ~/setupenv.sh, etc/hosts, etc/profile, etc/paths, ssh keys, and so on)
+  * Soft link scripts:
+  	* sudo ln -s /Users/jason/Documents/code/scripts /scripts
+  * Install applications listed below
+  * Disable wifi if needed, set server ip to: 192.168.3.20
 
-# fix md5sum
-# after 'brew install coreutils'
-# sudo ln -s /usr/local/opt/coreutils/libexec/gnubin/md5sum /usr/local/bin/md5sum
+APPLICATIONS
+============
 
-# disable time machine local backups
-# http://osxdaily.com/2011/09/28/disable-time-machine-local-backups-in-mac-os-x-lion/
-# sudo tmutil disablelocal
+  * Acorn (from app store)
+  * Android File Transfer
+  * Audacity
+  * Blackmagic Disk Speed Test
+  * BookWright
+  * Cyberduck
+  * Disk Inventory X
+  * Dropbox
+  * Google Chrome
+  * Google Music Manager
+  * HandBrake
+  * ImageOptim
+  * MakeMKV
+  * Minecraft
+  * Pixlr
+  * Skype
+  * SmartSVN 9
+  * SourceTree
+  * Spotify
+  * Steam
+  * Sublime Text 2
+  * The Unarchiver
+  * Thunderbird
+  * Transmission
+  * VirtualBox
+  * VLC.app
+  * XAMPP
 
-#runs daily backup
-/etc/daily.local
+OLD BACKUP CONFIG FILES
+=======================
 
-#backup thing
-/System/Library/LaunchDaemons/blunx.backup.plist
-#info on how to load into launchd:
-# http://superuser.com/questions/36087/how-do-i-run-a-launchd-command-as-root
-# chmod 755 /System/Library/LaunchDaemons/blunx.backup.plist
-# sudo launchctl load -w /System/Library/LaunchDaemons/blunx.backup.plist
+**how to load into plist into launchd:**
+ * http://superuser.com/questions/36087/how-do-i-run-a-launchd-command-as-root
+ * sudo chmod 755 /System/Library/LaunchDaemons/serverbackup.plist
+ * sudo launchctl load -w /System/Library/LaunchDaemons/serverbackup.plist
 
-#root cron job to run reports at 8:30pm
-# from http://superuser.com/questions/391204/what-is-the-difference-between-periodic-and-cron-on-os-x
-# /usr/lib/cron/tabs
-# Run sudo crontab -e and add these lines:
-# MAILTO=jason@onejasonforsale.com
-# 30 20 * * * bash /scripts/to_sales_reports/fetch_reports.sh
+**root cron job to run reports at 8:30pm:**)
+ * http://superuser.com/questions/391204/what-is-the-difference-between-periodic-and-cron-on-os-x
+ * file tabs are stored in: /usr/lib/cron/tabs
+ * Run sudo crontab -e and add these lines:
 
-install brew
-with brew install wget, md5sum (core-utils), ln -s md5sum and so on
-on server ln -s external and scripts
-put ssh keys in place
-update bash profile to link to scripts bash_profile.sh
+		MAILTO=jason@onejasonforsale.com
+		30 20 * * * bash /scripts/to_sales_reports/fetch_reports.sh
 
- 16M	./Acorn.app
-6.1M	./Android File Transfer.app
- 75M	./Audacity
- 17M	./Blackmagic Disk Speed Test.app
-255M	./BookWright.app
-143M	./Cyberduck.app
-9.4M	./Disk Inventory X.app
-174M	./Dropbox.app
-410M	./Google Chrome.app
- 25M	./HandBrake.app
-5.9M	./ImageOptim.app
-114M	./MakeMKV.app
-332M	./Minecraft.app
- 91M	./Pixlr.app
-107M	./SimCity 2000.app
-121M	./Skype.app
-167M	./SmartSVN 9.app
-124M	./SourceTree.app
-161M	./Spotify.app
-675M	./Steam.app
- 26M	./Sublime Text 2.app
-4.4M	./The Unarchiver.app
-168M	./Thunderbird.app
- 11M	./Transmission.app
-168M	./VirtualBox.app
-109M	./VLC.app
-790M	./XAMPP
-9.2G	.
+**/System/Library/LaunchDaemons/serverbackup.plist file contents:**
+
+		<?xml version="1.0" encoding="UTF-8"?>
+		<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+		"http://www.apple.
+		com/DTDs/PropertyList-1.0.dtd">
+		<plist version="1.0">
+		<dict>  
+			<key>Label</key><string>serverbackup</string>
+			<key>ProgramArguments</key>
+			<array> 
+				<string>/archive/scripts/serverbackup.sh</string>
+			</array>
+			<key>WorkingDirectory</key><string>/archive/scripts</string>
+			<key>EnvironmentVariables</key>
+			<dict>
+				<key>PATH</key>
+				<string>/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/archive/scripts</string>
+			</dict>
+			<key>LowPriorityIO</key><true/>
+			<key>Nice</key><integer>1</integer>
+			<key>StartCalendarInterval</key>
+			<dict>  
+				<key>Hour</key><integer>4</integer>
+				<key>Minute</key><integer>10</integer>
+			</dict>
+			<key>StandardOutPath</key><string>/var/log/serverbackup.log</string>
+			<key>StandardErrorPath</key><string>/var/log/serverbackup.log</string>
+		</dict>
+		</plist>
+
+**autodiskmount.plist file contents:**
+
+		<?xml version="1.0" encoding="UTF-8"?>
+		<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" 
+		   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+		<plist version="1.0">
+			<dict>
+			    <key>AutomountDisksWithoutUserLogin</key><true/>
+			</dict>
+		</plist>
+
+**/etc/daily.local file contents:**
+
+		#!/bin/bash
+		/scripts/systembackup.sh 2>&1 | tee -a /var/log/systembackup.log
+
+**/etc/weekly.local file contents:**
+
+		#!/bin/bash
+		/archive/scripts/osxrotatelogs.sh /var/log /archive/logs/locallogs/

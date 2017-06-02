@@ -111,6 +111,21 @@ alias unlock_files='sudo chflags nouchg ${1}/*'
 # can't get this to work as an alias, oh well.
 function stext() { /Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl ${@}; } 
 
+# from: https://stackoverflow.com/a/7177891
+# opens a new tab in terminal
+function terminal_open_tab() {
+    osascript -e 'tell application "Terminal" to activate' \
+        -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'
+}
+
+function terminal_tab_execute() {
+    COMMAND="${1}"        
+    COMMAND="tell application \"Terminal\" to do script \"${1}\" in selected tab of the front window"
+    # echo "Command is: \"${COMMAND}\""
+    osascript -e 'tell application "Terminal" to activate'
+    osascript -e "${COMMAND}"
+}
+
 #####################
 # DEVELOPMENT STUFF #
 #####################

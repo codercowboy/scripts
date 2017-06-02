@@ -127,6 +127,7 @@ if test ${FLAG_BACKUP_LOCAL} = "true"; then
 	cp /etc/hosts ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp /etc/profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp /etc/paths ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp ${MY_USER_HOME}/setupenv.sh ${LOCAL_RSYNC_TARGET_DIR}/misc/
 
 	echo "backing up code"
 	my_rsync ${MY_USER_HOME}/Documents/code/ ${LOCAL_RSYNC_TARGET_DIR}/code/
