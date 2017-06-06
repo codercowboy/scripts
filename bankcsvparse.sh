@@ -2,7 +2,7 @@
 
 ########################################################################
 #
-# backuptousb.sh - personal backup to external drive script
+# bankcsvparse.sh - converts BOA CSV downloads into legible text.
 #
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
@@ -11,13 +11,13 @@
 ########################################################################
 #
 # UPDATES:
-#
-# 2017/05/02
-#  - Initial version
+# 
+# 2017/06/06
+# - Initial Version
 #
 ########################################################################
 #
-# Copyright (c) 2012, Coder Cowboy, LLC. All rights reserved.
+# Copyright (c) 2017, Coder Cowboy, LLC. All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -44,53 +44,39 @@
 #
 ########################################################################
 
-if [ -e /Volumes/USB2TBSLIMENC ]
-then
-  DEST=/Volumes/USB2TBSLIMENC
-elif [ -e /Volumes/USBBLUE3TB ]
-then
-  DEST=/Volumes/USBBLUE3TB
-elif [ -e /Volumes/USB2TBENC ]
-then
-  DEST=/Volumes/USB2TBENC
-elif [ -e /Volumes/USB2TBENCRED ]
-then
-  DEST=/Volumes/USB2TBENCRED
-elif [ -e /Volumes/USBRED4TB ]
-then
-  DEST=/Volumes/USBRED4TB
-else
-  echo "Could not find usb drive to backup to, quitting.."
-  exit 1
+if test -z "$1"; then
+	echo "usage: bankcsvparse.sh [directory]"
+	exit 1
 fi
 
-echo "Backing up to ${DEST}"
-echo "Continue? (enter to continue, ctrl+c to quit)"
-read
+#make for's argument seperator newline only
+IFS=$'\n'
 
-#arg1 = source, #arg2 = target name
-function backup_folder () {
-  echo "[Backing up ${2}]"
-  mkdir -p "${DEST}/${2}"
-  my_rsync "${1}/" "${DEST}/${2}/"
-  echo "[Fixing permissions for ${2}]"
-  chmod -R 777 "${DEST}/${2}"
-  chown -R jason "${DEST}/${2}"
-  echo "[Finished backing up $2]"
-}
+for FILE in `find "${1}" -type f | grep ".csv"`; do
+	echo "file: ${FILE}"
+	for LINE in `cat "${1}/${FILE}"`; do
+		# echo "${LINE}"
+		# example: 05/01/2017,24692167119000174108660,"Amazon.com AMZN.COM/BILLWA","AMZN.COM/BILL WA ",-25.43
+		LINE=`echo "${LINE}" | sed 's/\/2017[^"]*"/ /'`
+		# example: 05/01 Amazon.com AMZN.COM/BILLWA","AMZN.COM/BILL WA ",-25.43
+		LINE=`echo "${LINE}" | sed 's/".*,/ : /'`
+		# example: 05/01 Amazon.com AMZN.COM/BILLWA : -25.43
 
-backup_folder /external/rsync backup/rsync
-backup_folder /external/backup/new backup/new
+		# these are known replacements
+		LINE=`echo "${LINE}" | sed 's/ .*Amazon[^:]*/ Amazon /'`
+		LINE=`echo "${LINE}" | sed 's/ .*AMAZON[^:]*/ Amazon /'`
+		LINE=`echo "${LINE}" | sed 's/ .*TXTAG[^:]*/ TXTAG /'`
+		LINE=`echo "${LINE}" | sed 's/ .*ITUNES[^:]*/ ITUNES /'`
+		LINE=`echo "${LINE}" | sed 's/ .*THUNDERCLOUD[^:]*/ THUNDERCLOUD /'`
+		LINE=`echo "${LINE}" | sed 's/ .*HEB[^:]*/ HEB /'`
 
-echo "[Checking md5 sums]"
-md5tool.sh CHECKALL ${DEST}/backup
+		LINE=`echo "${LINE}" | sed 's/ ARLINGTON TX//'`
+		LINE=`echo "${LINE}" | sed 's/ ROUND ROCK TX//'`
+		LINE=`echo "${LINE}" | sed 's/ Round Rock TX//'`
+		LINE=`echo "${LINE}" | sed 's/ AUSTIN TX//'`
+		LINE=`echo "${LINE}" | sed 's/ Austin TX//'`
+		echo "${LINE}"
 
-echo "Appending date to ${DEST}/backupdates.txt"
+	done	
 
-date >> ${DEST}/backupdates.txt
-
-FREE_SPACE=`df -h | grep ${DEST} | awk '{print $4;}'`
-echo "Destination stats after backup: ${DEST} (${FREE_SPACE} free)"
-echo "Usage:"
-du -h -d 1 ${DEST} 
-
+done

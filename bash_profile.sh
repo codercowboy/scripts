@@ -74,9 +74,15 @@ function my_rsync() {
 	rsync -vrthW --del --stats --progress --chmod=u=rwx "${@}" 
 }
 
+# export these functions so child processes, such as scripts running, can see them
+# https://stackoverflow.com/questions/33921371/command-not-found-when-running-defined-function-in-script-file
+export -f my_rsync
+
 function my_rsync_test() {
 	rsync -n -aii --delete "$@" | grep -v "\.f " | grep -v "\.d " | grep -v "f\.\." | grep -v '\.d\.\.' | sed 's/.f\+* /newfile /'
 }
+
+export -f my_rsync_test
 
 # from: http://www.linuxproblem.org/art_9.html
 function ssh_setup_passwordless() { 
@@ -97,6 +103,8 @@ function ssh_setup_passwordless() {
 	#cat ~/.ssh/id_rsa.pub | ssh ${1} 'cat >> .ssh/authorized_keys'
 }
 
+export -f ssh_setup_passwordless
+
 ######################
 # VARIOUS OSX TRICKS #
 ######################
@@ -111,12 +119,16 @@ alias unlock_files='sudo chflags nouchg ${1}/*'
 # can't get this to work as an alias, oh well.
 function stext() { /Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl ${@}; } 
 
+export -f stext
+
 # from: https://stackoverflow.com/a/7177891
 # opens a new tab in terminal
 function terminal_open_tab() {
     osascript -e 'tell application "Terminal" to activate' \
         -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'
 }
+
+export -f terminal_open_tab
 
 function terminal_tab_execute() {
     COMMAND="${1}"        
@@ -125,6 +137,8 @@ function terminal_tab_execute() {
     osascript -e 'tell application "Terminal" to activate'
     osascript -e "${COMMAND}"
 }
+
+export -f terminal_tab_execute
 
 #####################
 # DEVELOPMENT STUFF #

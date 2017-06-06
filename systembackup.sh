@@ -63,6 +63,11 @@ mkdir -p "${SYSTEM_PATH}"
 cp /etc/paths "${SYSTEM_PATH}/" # this holds the path variable for all users
 cp /etc/profile "${SYSTEM_PATH}/" # this runs for all users when they login for terminal
 cp /etc/bashrc "${SYSTEM_PATH}/"
+MY_USER_HOME=/Users/${MY_USER}
+cp ${MY_USER_HOME}/.bash_profile "${SYSTEM_PATH}/"
+cp -r ${MY_USER_HOME}/.ssh "${SYSTEM_PATH}/"
+cp /etc/hosts "${SYSTEM_PATH}/"
+cp ${MY_USER_HOME}/setupenv.sh "${SYSTEM_PATH}/"
 
 echo "[Backing up SVN]"
 
@@ -97,7 +102,7 @@ chmod -R 755 /scripts
 chown -R root /scripts
 chgrp -R wheel /scripts
 
-chmod -R 777 /svn
+chmod -R 777 /external/misc/svn
 
 chown -R jason /external/rsync
 chmod -R 700 /external/rsync
