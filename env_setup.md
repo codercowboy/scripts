@@ -39,11 +39,18 @@ INITIAL SETUP
   	* sudo ln -s /Users/jason/Documents/code/scripts /scripts
   * Install applications listed below
   * Disable wifi if needed, set server ip to: 192.168.3.20
+  * Install open folder in stext finder plugin. 
+    * copy to ~/Library/Services.
+    * System Preferences > Keyboard > Shortcuts > Services -> Enable "Open in Sublime Text"
+  * Install open folder in terminal.
+    * http://lifehacker.com/launch-an-os-x-terminal-window-from-a-specific-folder-1466745514
+    * System Preferences > Keyboard > Shortcuts > Services -> "New Terminal at Folder"
 
 APPLICATIONS
 ============
 
   * Acorn (from app store)
+  * Amazon Drive
   * Android File Transfer
   * Audacity
   * Blackmagic Disk Speed Test
@@ -55,6 +62,7 @@ APPLICATIONS
   * Google Music Manager
   * HandBrake
   * ImageOptim
+  * LastPass
   * MakeMKV
   * Minecraft
   * Pixlr

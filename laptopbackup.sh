@@ -128,6 +128,8 @@ if test ${FLAG_BACKUP_LOCAL} = "true"; then
 	cp /etc/profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp /etc/paths ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp ${MY_USER_HOME}/setupenv.sh ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
+	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip ${MY_USER_HOME}/Library/Services/
 
 	echo "backing up code"
 	my_rsync ${MY_USER_HOME}/Documents/code/ ${LOCAL_RSYNC_TARGET_DIR}/code/
