@@ -86,10 +86,22 @@ export -f my_rsync_test
 
 # from: http://www.linuxproblem.org/art_9.html
 function ssh_setup_passwordless() { 
-	# create the key
-	ssh-keygen -t dsa -q -N "" -f ~/.ssh/id_dsa
+    if [ "${1}" = "" ]; then
+        echo "USAGE: ssh_setup_passwordless user@host"
+        return
+    fi
 
-	HOST_PUBLIC_KEY=`cat ~/.ssh/id_dsa.pub`
+    echo "Setting up passwordless ssh on ${1}"
+
+	# create the key
+    if [ ! -e ~/.ssh/id_rsa ]; then
+        echo "generating rsa key: ~/.ssh/id_rsa"
+        ssh-keygen -t rsa -q -N "" -f ~/.ssh/id_rsa
+    else
+        echo "rsa key for ssh already exists: ~/.ssh/id_rsa"
+    fi
+
+	HOST_PUBLIC_KEY=`cat ~/.ssh/id_rsa.pub`
 
 	REMOTE_COMMAND="mkdir -p ~/.ssh; 
 		echo \"${HOST_PUBLIC_KEY}\" >> ~/.ssh/authorized_keys;
@@ -97,10 +109,7 @@ function ssh_setup_passwordless() {
 
 	echo "Enter your password for the remote host, we need this to copy your public key to the remote host with ssh."
 
-	ssh "${MY_USER}@${MY_SERVER}" "$REMOTE_COMMAND"
-
-	# another interesting shorthand version ..
-	#cat ~/.ssh/id_rsa.pub | ssh ${1} 'cat >> .ssh/authorized_keys'
+	ssh "${1}" "$REMOTE_COMMAND"
 }
 
 export -f ssh_setup_passwordless
@@ -149,7 +158,7 @@ export M2_HOME=/Users/${MY_USER}/Documents/tools/apache-maven-3.0.5 # maven stuf
 export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
 export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin
 export PATH=${HOME}/.yarn/bin:${PATH} # yarn for angular2 dev
-export PATH=/usr/local/bin:${CODE}/scripts:${PATH}
+export PATH=/usr/local/bin:/scripts:${PATH}
 
 # make git log output human readable
 alias gitlog='git log --pretty=format:"%h - %an, %ar : %s"'

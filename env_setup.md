@@ -12,9 +12,11 @@ INITIAL SETUP
   * Install all system updates
   * OS Settings Changes:
     * Set time machine backup disk
+    * Remove external drives from time machine backup
     * Disable local time machine snapshots with:
       * sudo tmutil disablelocal
     * Disable spotlight and siri
+    * Add external hard drives to spotlight ignore
     * Set Energy Settings as appropriate
     * Enable screen sharing, remote access, and file sharing
     * Fix mouse scroll direction
@@ -38,7 +40,8 @@ INITIAL SETUP
   * Soft link scripts:
   	* sudo ln -s /Users/jason/Documents/code/scripts /scripts
   * Install applications listed below
-  * Disable wifi if needed, set server ip to: 192.168.3.20
+  * Disable wifi if needed
+  * Fix ssh keys
   * Install open folder in stext finder plugin. 
     * copy to ~/Library/Services.
     * System Preferences > Keyboard > Shortcuts > Services -> Enable "Open in Sublime Text"

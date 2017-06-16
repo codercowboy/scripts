@@ -144,7 +144,7 @@ if test ${FLAG_BACKUP_LOCAL} = "true"; then
 	my_rsync ${MY_USER_HOME}/Downloads/ ${LOCAL_RSYNC_TARGET_DIR}/Downloads/
 
 	echo "backing up mail"
-	my_rsync ${MY_USER_HOME}/Library/Mail ${LOCAL_RSYNC_TARGET_DIR}/Mail/
+	my_rsync ${MY_USER_HOME}/Library/Mail/ ${LOCAL_RSYNC_TARGET_DIR}/Mail/
 
 	echo "backing up minecraft"
 	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots" ${LOCAL_RSYNC_TARGET_DIR}/minecraft/screenshots/
@@ -195,12 +195,12 @@ if test ${FLAG_BACKUP_USB} = "true"; then
 			my_rsync "${LOCAL_RSYNC_TARGET_DIR}/" "${USB_BACKUP_DIR}/backup/"
 			
 			mkdir -p "${USB_BACKUP_DIR}/Pictures/"
-			md5tool.sh CREATE "/Users/jason/Pictures"
+			md5tool.sh CREATE "/Users/jason/Pictures/"
 			my_rsync "/Users/jason/Pictures" "${USB_BACKUP_DIR}/Pictures/"		
 
 			mkdir -p "${USB_BACKUP_DIR}/Movies/"
 			md5tool.sh CREATE "/Users/jason/Movies"
-			my_rsync "/Users/jason/Movies" "${USB_BACKUP_DIR}/Movies/"		
+			my_rsync "/Users/jason/Movies/" "${USB_BACKUP_DIR}/Movies/"		
 			
 			md5tool.sh CHECKALL "${USB_BACKUP_DIR}/"
 		fi
