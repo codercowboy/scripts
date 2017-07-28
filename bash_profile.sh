@@ -126,7 +126,7 @@ alias unlock_files='sudo chflags nouchg ${1}/*'
 
 # auto open sublime text to the given directory or file.
 # can't get this to work as an alias, oh well.
-function stext() { /Applications/Sublime\ Text\ 2.app/Contents/SharedSupport/bin/subl ${@}; } 
+function stext() { /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl ${@}; } 
 
 export -f stext
 
