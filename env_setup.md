@@ -52,14 +52,18 @@ INITIAL SETUP
 APPLICATIONS
 ============
 
+  * 4K Video Downloader
   * Acorn (from app store)
   * Amazon Drive
   * Android File Transfer
   * Audacity
   * Blackmagic Disk Speed Test
   * BookWright
+  * CrossOver
   * Cyberduck
   * Disk Inventory X
+  * Dolphin
+  * DosBox
   * Dropbox
   * Google Chrome
   * Google Music Manager
@@ -67,7 +71,7 @@ APPLICATIONS
   * ImageOptim
   * LastPass
   * MakeMKV
-  * Minecraft
+  * Minecraft  
   * Pixlr
   * Skype
   * SmartSVN 9
@@ -79,7 +83,7 @@ APPLICATIONS
   * Thunderbird
   * Transmission
   * VirtualBox
-  * VLC.app
+  * VLC
   * XAMPP
 
 OLD BACKUP CONFIG FILES
