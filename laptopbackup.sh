@@ -56,9 +56,9 @@ fi
 
 MY_USER_HOME=/Users/${MY_USER}
 
-SERVER_RSYNC_TARGET_DIR=${MY_USER}@${MY_SERVER}:/external/rsync/laptop_backup/
+SERVER_RSYNC_TARGET_DIR=${MY_USER}@${MY_SERVER}:/external/backup/laptop_backup
 
-LOCAL_RSYNC_TARGET_DIR=${MY_USER_HOME}/Documents/backup/rsync/laptop_backup
+LOCAL_RSYNC_TARGET_DIR=${MY_USER_HOME}/Documents/laptop_backup
 mkdir -p ${LOCAL_RSYNC_TARGET_DIR}
 
 FLAG_BACKUP_LOCAL="false"
@@ -105,14 +105,39 @@ function my_rsync() {
 #make for's argument seperator newline only
 IFS=$'\n'
 
+function run_backup_job() {
+	TARGET_DIR="${1}"
+	RSYNC_ARGS="${2}"
+	
+	my_rsync ${RSYNC_ARGS} "${LOCAL_RSYNC_TARGET_DIR}/" "${TARGET_DIR}/backup/"
+
+	echo "backing up stuff to move to server"
+	md5tool.sh CREATE "${MY_USER_HOME}/Documents/move_to_server/"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Documents/move_to_server/" "${TARGET_DIR}/move_to_server/"
+			
+	md5tool.sh CREATE "${MY_USER_HOME}/Pictures/"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Pictures" "${TARGET_DIR}/Pictures/"		
+
+	md5tool.sh CREATE "${MY_USER_HOME}/Movies"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Movies/" "${TARGET_DIR}/Movies/"			
+
+	md5tool.sh CREATE "${MY_USER_HOME}/Dropbox"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Dropbox/" "${TARGET_DIR}/Dropbox/"			
+}
+
 if test ${FLAG_BACKUP_CLEAN} = "true"; then
 	echo "[Starting Clean Backup Step.]"
 
-	for FILE in `find ${CODE} -type d -name target`
-	do
+	for FILE in `find ${CODE} -type d -name target`; do
 		echo "Removing: ${FILE}"
 		rm -Rf "${FILE}"		
 	done
+
+	for FILE in `find ${CODE} -type d -name node_modules -d 3`; do
+		echo "Removing: ${FILE}"
+		rm -Rf "${FILE}"
+	done
+
 	echo "[Finished Clean Backup Step.]"
 fi
 
@@ -129,32 +154,29 @@ if test ${FLAG_BACKUP_LOCAL} = "true"; then
 	cp /etc/paths ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp ${MY_USER_HOME}/setupenv.sh ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
-	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip ${MY_USER_HOME}/Library/Services/
+	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip "${MY_USER_HOME}/Library/Services/"
 
 	echo "backing up code"
-	my_rsync ${MY_USER_HOME}/Documents/code/ ${LOCAL_RSYNC_TARGET_DIR}/code/
+	my_rsync "${MY_USER_HOME}/Documents/code/" "${LOCAL_RSYNC_TARGET_DIR}/code/"
 
 	echo "backing up thunderbird"
-	my_rsync ${MY_USER_HOME}/Library/Thunderbird/ ${LOCAL_RSYNC_TARGET_DIR}/Thunderbird/
+	my_rsync "${MY_USER_HOME}/Library/Thunderbird/" "${LOCAL_RSYNC_TARGET_DIR}/Thunderbird/"
 
 	echo "backing up desktop code"
-	my_rsync ${MY_USER_HOME}/Desktop/code/ ${LOCAL_RSYNC_TARGET_DIR}/desktop-code/
+	my_rsync "${MY_USER_HOME}/Desktop/code/" "${LOCAL_RSYNC_TARGET_DIR}/desktop-code/"
 
 	echo "backing up downloads"
-	my_rsync ${MY_USER_HOME}/Downloads/ ${LOCAL_RSYNC_TARGET_DIR}/Downloads/
+	my_rsync "${MY_USER_HOME}/Downloads/" "${LOCAL_RSYNC_TARGET_DIR}/Downloads/"
 
 	echo "backing up mail"
-	my_rsync ${MY_USER_HOME}/Library/Mail/ ${LOCAL_RSYNC_TARGET_DIR}/Mail/
+	my_rsync "${MY_USER_HOME}/Library/Mail/" "${LOCAL_RSYNC_TARGET_DIR}/Mail/"
 
 	echo "backing up minecraft"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots" ${LOCAL_RSYNC_TARGET_DIR}/minecraft/screenshots/
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves" ${LOCAL_RSYNC_TARGET_DIR}/minecraft/saves/
-
-	echo "backing up stuff to move to server"
-	my_rsync ${MY_USER_HOME}/Documents/move_to_server/ ${LOCAL_RSYNC_TARGET_DIR}/move_to_server/
+	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots" "${LOCAL_RSYNC_TARGET_DIR}/minecraft_screenshots/"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves" "${LOCAL_RSYNC_TARGET_DIR}/minecraft_saves/"	
 
 	echo "Creating md5 in ${LOCAL_RSYNC_TARGET_DIR}"
-	md5tool.sh CREATE ${LOCAL_RSYNC_TARGET_DIR}
+	md5tool.sh CREATE "${LOCAL_RSYNC_TARGET_DIR}"
 	echo "[Finished Local Backup Step.]"
 else
 	echo "Skipping local backup step."
@@ -162,7 +184,7 @@ fi #end local backup section
 
 if test ${FLAG_BACKUP_REMOTE} = "true"; then
 	echo "[Starting Remote Backup Step.]"
-	my_rsync -e ssh ${LOCAL_RSYNC_TARGET_DIR}/ ${SERVER_RSYNC_TARGET_DIR}
+	run_backup_job "${SERVER_RSYNC_TARGET_DIR}" "-e ssh"
 	echo "[Finished Remote Backup Step.]"
 else 
 	echo "Skipping rsync to remote step."
@@ -174,9 +196,9 @@ if test ${FLAG_BACKUP_USB} = "true"; then
 	if [ -e /Volumes/USBBLUE3TB ]
 	then
 	  USB_DEST=/Volumes/USBBLUE3TB	
-	elif [ -e /Volumes/USB3TBMEDIA ]
+	elif [ -e /Volumes/USB128GB ]
 	then
-	  USB_DEST=/Volumes/USB3TBMEDIA
+	  USB_DEST=/Volumes/USB128GB
 	fi	
 
 	if test "${USB_DEST}" != ""; then
@@ -189,18 +211,10 @@ if test ${FLAG_BACKUP_USB} = "true"; then
 		else
 			echo "Backing up to USB drive: ${USB_DEST}"
 
-			USB_BACKUP_DIR="${USB_DEST}/backup/laptop_backup/"
+			USB_BACKUP_DIR="${USB_DEST}/laptop_backup"
+			mkdir -p "${USB_BACKUP_DIR}"
 
-			mkdir -p "${USB_BACKUP_DIR}/backup/"
-			my_rsync "${LOCAL_RSYNC_TARGET_DIR}/" "${USB_BACKUP_DIR}/backup/"
-			
-			mkdir -p "${USB_BACKUP_DIR}/Pictures/"
-			md5tool.sh CREATE "/Users/jason/Pictures/"
-			my_rsync "/Users/jason/Pictures" "${USB_BACKUP_DIR}/Pictures/"		
-
-			mkdir -p "${USB_BACKUP_DIR}/Movies/"
-			md5tool.sh CREATE "/Users/jason/Movies"
-			my_rsync "/Users/jason/Movies/" "${USB_BACKUP_DIR}/Movies/"		
+			run_backup_job "${USB_BACKUP_DIR}" ""
 			
 			md5tool.sh CHECKALL "${USB_BACKUP_DIR}/"
 		fi

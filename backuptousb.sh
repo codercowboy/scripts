@@ -79,8 +79,7 @@ function backup_folder () {
   echo "[Finished backing up $2]"
 }
 
-backup_folder /external/rsync backup/rsync
-backup_folder /external/backup/new backup/new
+backup_folder "/external/backup" "backup"
 
 echo "[Checking md5 sums]"
 md5tool.sh CHECKALL ${DEST}/backup
