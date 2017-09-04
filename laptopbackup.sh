@@ -123,6 +123,9 @@ function run_backup_job() {
 
 	md5tool.sh CREATE "${MY_USER_HOME}/Dropbox"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Dropbox/" "${TARGET_DIR}/Dropbox/"			
+
+	md5tool.sh CREATE "${MY_USER_HOME}/VirtualBox VMs/win98"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/VirtualBox VMs/win98/" "${TARGET_DIR}/win98vm/"			
 }
 
 if test ${FLAG_BACKUP_CLEAN} = "true"; then

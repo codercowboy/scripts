@@ -126,7 +126,7 @@ alias unlock_files='sudo chflags nouchg ${1}/*'
 
 # auto open sublime text to the given directory or file.
 # can't get this to work as an alias, oh well.
-function stext() { /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl ${@}; } 
+function stext() { /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl "${@}"; } 
 
 export -f stext
 
@@ -154,7 +154,7 @@ export -f terminal_tab_execute
 #####################
 
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home # java stuff
-export M2_HOME=/Users/${MY_USER}/Documents/tools/apache-maven-3.0.5 # maven stuff
+export M2_HOME=/Users/${MY_USER}/Documents/tools/apache-maven-3.5.0 # maven stuff
 export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
 export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin
 export PATH=${HOME}/.yarn/bin:${PATH} # yarn for angular2 dev
