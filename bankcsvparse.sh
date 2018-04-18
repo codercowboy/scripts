@@ -55,12 +55,13 @@ IFS=$'\n'
 for FILE in `find "${1}" -type f | grep ".csv"`; do
 	echo "file: ${FILE}"
 	for LINE in `cat "${1}/${FILE}"`; do
-		# echo "${LINE}"
+		#echo "original: ${LINE}"
 		# example: 05/01/2017,24692167119000174108660,"Amazon.com AMZN.COM/BILLWA","AMZN.COM/BILL WA ",-25.43
-		LINE=`echo "${LINE}" | sed 's/\/2017[^"]*"/ /'`
-		# example: 05/01 Amazon.com AMZN.COM/BILLWA","AMZN.COM/BILL WA ",-25.43
+		LINE=`echo "${LINE}" | sed 's/\([^,]*\),[^"]*"/\1 /'`
+		#echo "second: ${LINE}"
+		# example: 05/01/2017 Amazon.com AMZN.COM/BILLWA","AMZN.COM/BILL WA ",-25.43
 		LINE=`echo "${LINE}" | sed 's/".*,/ : /'`
-		# example: 05/01 Amazon.com AMZN.COM/BILLWA : -25.43
+		# example: 05/01/2017 Amazon.com AMZN.COM/BILLWA : -25.43
 
 		# these are known replacements
 		LINE=`echo "${LINE}" | sed 's/ .*Amazon[^:]*/ Amazon /'`

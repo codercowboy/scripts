@@ -104,9 +104,6 @@ chgrp -R wheel /scripts
 
 chmod -R 777 /external/misc/svn
 
-chown -R jason /external/rsync
-chmod -R 700 /external/rsync
-
 chmod -R 700 /external/backup
 chown -R jason /external/backup
 

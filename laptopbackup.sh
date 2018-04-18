@@ -125,8 +125,40 @@ function run_backup_job() {
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Dropbox/" "${TARGET_DIR}/Dropbox/"			
 
 	md5tool.sh CREATE "${MY_USER_HOME}/VirtualBox VMs/win98"
-	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/VirtualBox VMs/win98/" "${TARGET_DIR}/win98vm/"			
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/VirtualBox VMs/win98/" "${TARGET_DIR}/win98vm/"		
+
+	md5tool.sh CREATE "/Applications/Wine"
+	my_rsync ${RSYNC_ARGS} "/Applications/Wine" "${TARGET_DIR}/wine/"			
 }
+
+if test ${FLAG_BACKUP_USB} = "true"; then
+	echo "[Starting USB Backup Step.]"
+	USB_DEST=""
+	if [ -e /Volumes/USBBLUE3TB ]
+	then
+	  USB_DEST=/Volumes/USBBLUE3TB		  
+	elif [ -e /Volumes/USBRED4TB ]
+	then
+	  USB_DEST=/Volumes/USBRED4TB
+	elif [ -e /Volumes/USB128GB ]
+	then
+	  USB_DEST=/Volumes/USB128GB
+	fi	
+
+	if test "${USB_DEST}" != ""; then
+		echo "Backing up to ${USB_DEST}"
+		echo "Continue? ('YES' to continue)"
+		read ANSWER
+
+		if test "${ANSWER}" != "YES"; then
+			echo "Skipping backup to USB, you did not answer 'YES', you said: ${ANSWER}"
+			exit 1
+		fi
+	else
+		echo "Skipping backup to USB, could not find valid USB target to backup to."
+		exit 1
+	fi
+fi #end usb dest selection section
 
 if test ${FLAG_BACKUP_CLEAN} = "true"; then
 	echo "[Starting Clean Backup Step.]"
@@ -174,6 +206,9 @@ if test ${FLAG_BACKUP_LOCAL} = "true"; then
 	echo "backing up mail"
 	my_rsync "${MY_USER_HOME}/Library/Mail/" "${LOCAL_RSYNC_TARGET_DIR}/Mail/"
 
+	echo "backing up messages"
+	my_rsync "${MY_USER_HOME}/Library/Messages/" "${LOCAL_RSYNC_TARGET_DIR}/Messages/"
+
 	echo "backing up minecraft"
 	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots" "${LOCAL_RSYNC_TARGET_DIR}/minecraft_screenshots/"
 	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves" "${LOCAL_RSYNC_TARGET_DIR}/minecraft_saves/"	
@@ -195,39 +230,18 @@ fi #end blunx backup section
 
 if test ${FLAG_BACKUP_USB} = "true"; then
 	echo "[Starting USB Backup Step.]"
-	USB_DEST=""
-	if [ -e /Volumes/USBBLUE3TB ]
-	then
-	  USB_DEST=/Volumes/USBBLUE3TB	
-	elif [ -e /Volumes/USB128GB ]
-	then
-	  USB_DEST=/Volumes/USB128GB
-	fi	
+	echo "Backing up to USB drive: ${USB_DEST}"
 
-	if test "${USB_DEST}" != ""; then
-		echo "Backing up to ${USB_DEST}"
-		echo "Continue? ('YES' to continue)"
-		read ANSWER
+	USB_BACKUP_DIR="${USB_DEST}/laptop_backup"
+	mkdir -p "${USB_BACKUP_DIR}"
 
-		if test "${ANSWER}" != "YES"; then
-			echo "Skipping backup to USB, you did not answer 'YES', you said: ${ANSWER}"
-		else
-			echo "Backing up to USB drive: ${USB_DEST}"
-
-			USB_BACKUP_DIR="${USB_DEST}/laptop_backup"
-			mkdir -p "${USB_BACKUP_DIR}"
-
-			run_backup_job "${USB_BACKUP_DIR}" ""
-			
-			md5tool.sh CHECKALL "${USB_BACKUP_DIR}/"
-		fi
-	else
-		echo "Skipping backup to USB, could not find valid USB target to backup to."
-	fi
+	run_backup_job "${USB_BACKUP_DIR}" ""
+	
+	md5tool.sh CHECKALL "${USB_BACKUP_DIR}/"
 	echo "[Finished USB Backup Step.]"
 else 
 	echo "Skipping backup to usb step."
-fi #end remote backup section
+fi #end usb backup section
 
 echo "fixing permissions"
 chmod -R 700 ${LOCAL_RSYNC_TARGET_DIR}

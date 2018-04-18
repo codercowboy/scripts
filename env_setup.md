@@ -32,18 +32,19 @@ INITIAL SETUP
     * Install open file/folder with sublimetext scripts
   * Install JDK, Eclipse, Dev Tools
   * Setup backup directories 
-  * Install homebrew, then these: rclone, wget, coreutils
-  * Configure rclone with 'rclone config'
+    * SERVER: ln -s /Volumes/Macintosh\ HD2 /external
+  * Install Xcode, then homebrew, then these: rclone, wget, coreutils
   * Soft link md5sum with:
     * sudo ln -s /usr/local/opt/coreutils/libexec/gnubin/md5sum /usr/local/bin/md5sum
   * Restore system files (jason ~/setupenv.sh, etc/hosts, etc/profile, etc/paths, ssh keys, and so on)
   * Soft link scripts:
-  	* sudo ln -s /Users/jason/Documents/code/scripts /scripts
+  	* LAPTOP: sudo ln -s /Users/jason/Documents/code/scripts /scripts
+  	* SERVER: ln -s /Volumes/Macintosh\ HD2/misc/scripts /scripts
   * Install applications listed below
   * Disable wifi if needed
   * Fix ssh keys
   * Install open folder in stext finder plugin. 
-    * copy to ~/Library/Services.
+    * copy to ~/Library/Services (from laptop backup "automator_services.zip" file in backup/misc).
     * System Preferences > Keyboard > Shortcuts > Services -> Enable "Open in Sublime Text"
   * Install open folder in terminal.
     * http://lifehacker.com/launch-an-os-x-terminal-window-from-a-specific-folder-1466745514
@@ -62,6 +63,7 @@ APPLICATIONS
   * CrossOver
   * Cyberduck
   * Disk Inventory X
+  * Display Menu (from app store)
   * Dolphin
   * DosBox
   * Dropbox
@@ -74,16 +76,17 @@ APPLICATIONS
   * Minecraft  
   * Pixlr
   * Skype
-  * SmartSVN 9
+  * SmartSVN
   * SourceTree
   * Spotify
   * Steam
-  * Sublime Text 2
-  * The Unarchiver
+  * Sublime Text
+  * The Unarchiver (from app store)
   * Thunderbird
   * Transmission
   * VirtualBox
   * VLC
+  * WineBottler
   * XAMPP
 
 OLD BACKUP CONFIG FILES
