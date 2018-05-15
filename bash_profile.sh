@@ -16,6 +16,9 @@
 #
 # UPDATES:
 #
+# 2017/05/10
+#  - Add function to clear out local time machine backups
+#
 # 2017/05/02
 #  - Initial version
 #
@@ -83,6 +86,20 @@ function my_rsync_test() {
 }
 
 export -f my_rsync_test
+
+function thin_local_snapshots() {
+	echo "Looking for local time machine backups to remove."
+	REMOVAL_COUNT=0
+	for SNAPSHOT in `tmutil listlocalsnapshots /`; do
+		SNAPSHOT_DATE=`echo "${SNAPSHOT}" | sed 's/com.apple.TimeMachine.//'`
+		echo "Removing snapshot '${SNAPSHOT}', date: ${SNAPSHOT_DATE}"
+		tmutil deletelocalsnapshots ${SNAPSHOT_DATE}
+		REMOVAL_COUNT=$((REMOVAL_COUNT+1))
+	done
+	echo "Finished removing time machine backups, removed ${REMOVAL_COUNT} backups."
+}
+
+export -f thin_local_snapshots
 
 # from: http://www.linuxproblem.org/art_9.html
 function ssh_setup_passwordless() { 
