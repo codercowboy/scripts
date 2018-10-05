@@ -52,7 +52,7 @@
 ########################################################################
 
 export CODE=/Users/${MY_USER}/Documents/code
-export TOOLS=/Users/${MY_USER}/Documents/tools
+export TOOLS=/Users/${MY_USER}/Documents/code/tools
 
 alias code='cd ${CODE}'
 alias tools='cd ${TOOLS}'
@@ -127,6 +127,8 @@ function ssh_setup_passwordless() {
 	echo "Enter your password for the remote host, we need this to copy your public key to the remote host with ssh."
 
 	ssh "${1}" "$REMOTE_COMMAND"
+
+	echo "Passwordless setup is complete. You should now be able to verify the passwordless login with: ssh ${1}"
 }
 
 export -f ssh_setup_passwordless
@@ -170,16 +172,22 @@ export -f terminal_tab_execute
 # DEVELOPMENT STUFF #
 #####################
 
-#export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home # java stuff
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_161.jdk/Contents/Home
-export M2_HOME=/Users/${MY_USER}/Documents/tools/apache-maven-3.5.0 # maven stuff
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_181.jdk/Contents/Home
+export M2_HOME=${TOOLS}/apache-maven-3.5.4 # maven stuff
 export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
+
 export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin
 export PATH=${HOME}/.yarn/bin:${PATH} # yarn for angular2 dev
+export PATH=${PATH}:${TOOLS}/eclipse/Eclipse.app/Contents/MacOS
 export PATH=/usr/local/bin:/scripts:${PATH}
+export PATH=/Applications/RealVNC/VNC\ Viewer.app/Contents/MacOS:${PATH} #vnc viewer
+
 
 # make git log output human readable
 alias gitlog='git log --pretty=format:"%h - %an, %ar : %s"'
+
+#start a http server in current directory
+alias webserverhere='python -m SimpleHTTPServer 8070'
 
 export EDITOR=vi # fight me.
 
