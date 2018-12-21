@@ -73,6 +73,8 @@ alias screenshare_my_server_local='open vnc://${MY_SERVER_NAME}._rfb._tcp.local'
 # RANDOM ONE LINERS  #
 ######################
 
+alias print_folder_size="du -h -d 0 '${1}' | tail -n 1 | sed 's/[[:blank:]].*//'"
+
 function my_rsync() { 
 	rsync -vrthW --del --stats --progress --chmod=u=rwx "${@}" 
 }

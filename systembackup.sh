@@ -51,7 +51,7 @@ function my_rsync() {
 TODAY=$(date +%m%d%y)
 echo "[System Backup for $TODAY]"
 
-TARGET_PATH="/external/backup/new/server_backup"
+TARGET_PATH="/external/backup/server_backup"
 mkdir -p "${TARGET_PATH}"
 
 echo "[Cleaning out old backup]"
@@ -93,6 +93,15 @@ rm -Rf "${SVN_BACKUP_DIR}"
 echo "[Copying Scripts]"
 mkdir -p "${TARGET_PATH}/scripts"
 my_rsync /scripts/ "${TARGET_PATH}/scripts/"
+
+echo "[Copying Pictures]"
+mkdir -p "${TARGET_PATH}/Pictures"
+my_rsync "${MY_USER_HOME}/Pictures/" "${TARGET_PATH}/Pictures/"
+
+echo "[Copying MobileSync]"
+mkdir -p "${TARGET_PATH}/MobileSync"
+my_rsync "${MY_USER_HOME}/Library/Application Support/MobileSync/" "${TARGET_PATH}/MobileSync/"
+
 
 echo "[Making checksum file for backup]"
 md5tool.sh CREATE "${TARGET_PATH}"

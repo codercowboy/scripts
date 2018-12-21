@@ -44,20 +44,17 @@
 #
 ########################################################################
 
-if [ -e /Volumes/USB2TBSLIMENC ]
-then
+if [ -e /Volumes/USB2TBSLIMENC ]; then
   DEST=/Volumes/USB2TBSLIMENC
-elif [ -e /Volumes/USBBLUE3TB ]
-then
+elif [ -e /Volumes/USBBLUE3TB ]; then
   DEST=/Volumes/USBBLUE3TB
-elif [ -e /Volumes/USB2TBENC ]
-then
+elif [ -e /Volumes/USB2TBENC ]; then
   DEST=/Volumes/USB2TBENC
-elif [ -e /Volumes/USB2TBENCRED ]
-then
+elif [ -e /Volumes/USB2TBENCRED ]; then
   DEST=/Volumes/USB2TBENCRED
-elif [ -e /Volumes/USBRED4TB ]
-then
+elif [ -e /Volumes/USBBLK4TB ]; then
+  DEST=/Volumes/USBBLK4TB
+elif [ -e /Volumes/USBRED4TB ]; then
   DEST=/Volumes/USBRED4TB
 else
   echo "Could not find usb drive to backup to, quitting.."

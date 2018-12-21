@@ -67,14 +67,19 @@ APPLICATIONS
   * Dolphin
   * DosBox
   * Dropbox
+  * FTP Server (from app store)
+  * Giphy Capture
   * Google Chrome
   * Google Music Manager
   * HandBrake
+  * HexFiend
   * ImageOptim
   * LastPass
   * MakeMKV
   * Minecraft  
+  * OpenEMU  
   * Pixlr
+  * RealVNC
   * Skype
   * SmartSVN
   * SourceTree
@@ -86,6 +91,7 @@ APPLICATIONS
   * Transmission
   * VirtualBox
   * VLC
+  * WhatsApp
   * WineBottler
   * XAMPP
 

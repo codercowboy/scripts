@@ -44,12 +44,12 @@
 #
 ########################################################################
 
-if test "" = "`env | grep MY_USER`"; then
+if [ "" = "`env | grep MY_USER`" ]; then
 	echo "ERROR: MY_USER system var isn't set."
 	exit 1
 fi
 
-if test "" = "`env | grep MY_SERVER`"; then
+if [ "" = "`env | grep MY_SERVER`" ]; then
 	echo "ERROR: MY_SERVER system var isn't set."
 	exit 1
 fi
@@ -66,22 +66,22 @@ FLAG_BACKUP_CLEAN="false"
 FLAG_BACKUP_REMOTE="false"
 FLAG_BACKUP_USB="false"
 
-if test "${1}" = "LOCAL_ONLY"; then
+if [ "${1}" = "LOCAL_ONLY" ]; then
 	FLAG_BACKUP_LOCAL="true"
 	FLAG_BACKUP_CLEAN="true"
-elif test "${1}" = "REMOTE_ONLY"; then
+elif [ "${1}" = "REMOTE_ONLY" ]; then
 	FLAG_BACKUP_REMOTE="true"
-elif test "${1}" = "USB_ONLY"; then
+elif [ "${1}" = "USB_ONLY" ]; then
 	FLAG_BACKUP_USB="true"
-elif test "${1}" = "FULL"; then
+elif [ "${1}" = "FULL" ]; then
 	FLAG_BACKUP_CLEAN="true"
 	FLAG_BACKUP_LOCAL="true"
 	FLAG_BACKUP_REMOTE="true"
-elif test "${1}" = "USB"; then
+elif [ "${1}" = "USB" ]; then
 	FLAG_BACKUP_CLEAN="true"
 	FLAG_BACKUP_LOCAL="true"
 	FLAG_BACKUP_USB="true"
-elif test "${1}" = "CLEAN"; then
+elif [ "${1}" = "CLEAN" ]; then
 	FLAG_BACKUP_CLEAN="true"
 else 
 	echo
@@ -134,23 +134,24 @@ function run_backup_job() {
 if test ${FLAG_BACKUP_USB} = "true"; then
 	echo "[Starting USB Backup Step.]"
 	USB_DEST=""
-	if [ -e /Volumes/USBBLUE3TB ]
-	then
+	if [ -e /Volumes/USBBLUE3TB ]; then
 	  USB_DEST=/Volumes/USBBLUE3TB		  
-	elif [ -e /Volumes/USBRED4TB ]
-	then
+	elif [ -e /Volumes/USBRED4TB ]; then
 	  USB_DEST=/Volumes/USBRED4TB
-	elif [ -e /Volumes/USB128GB ]
-	then
+	elif [ -e /Volumes/USBBLK4TB ]; then
+	  USB_DEST=/Volumes/USBBLK4TB
+	elif [ -e /Volumes/USB2TBSSD ]; then
+	  USB_DEST=/Volumes/USB2TBSSD
+	elif [ -e /Volumes/USB128GB ]; then
 	  USB_DEST=/Volumes/USB128GB
-	fi	
+	fi		
 
-	if test "${USB_DEST}" != ""; then
+	if [ "${USB_DEST}" != "" ]; then
 		echo "Backing up to ${USB_DEST}"
 		echo "Continue? ('YES' to continue)"
 		read ANSWER
 
-		if test "${ANSWER}" != "YES"; then
+		if [ "${ANSWER}" != "YES" ]; then
 			echo "Skipping backup to USB, you did not answer 'YES', you said: ${ANSWER}"
 			exit 1
 		fi
@@ -160,7 +161,15 @@ if test ${FLAG_BACKUP_USB} = "true"; then
 	fi
 fi #end usb dest selection section
 
-if test ${FLAG_BACKUP_CLEAN} = "true"; then
+# arg 1 is file
+function remove_file() {
+	if [ -e "${1}" ]; then
+		echo "Removing file: ${1}"
+		rm -Rf "${1}"
+	fi
+}
+
+if [ "${FLAG_BACKUP_CLEAN}" = "true" ]; then
 	echo "[Starting Clean Backup Step.]"
 
 	for FILE in `find ${CODE} -type d -name target`; do
@@ -173,10 +182,17 @@ if test ${FLAG_BACKUP_CLEAN} = "true"; then
 		rm -Rf "${FILE}"
 	done
 
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data.old"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/log"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/cfg/b"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/sched"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/msg"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/etc.old"
+	
 	echo "[Finished Clean Backup Step.]"
 fi
 
-if test ${FLAG_BACKUP_LOCAL} = "true"; then
+if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	echo "[Starting Local Backup Step.]"
 
 	echo "backing up misc"
@@ -220,7 +236,7 @@ else
 	echo "Skipping local backup step."
 fi #end local backup section
 
-if test ${FLAG_BACKUP_REMOTE} = "true"; then
+if  [ "${FLAG_BACKUP_REMOTE}" = "true" ]; then
 	echo "[Starting Remote Backup Step.]"
 	run_backup_job "${SERVER_RSYNC_TARGET_DIR}" "-e ssh"
 	echo "[Finished Remote Backup Step.]"
@@ -228,7 +244,7 @@ else
 	echo "Skipping rsync to remote step."
 fi #end blunx backup section
 
-if test ${FLAG_BACKUP_USB} = "true"; then
+if [ "${FLAG_BACKUP_USB}" = "true" ]; then
 	echo "[Starting USB Backup Step.]"
 	echo "Backing up to USB drive: ${USB_DEST}"
 
