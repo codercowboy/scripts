@@ -3,6 +3,16 @@ JASON'S SYSTEM SETUP CHEAT SHEET
 
 This is Jason's reminder list of setup steps when setting up a new OSX system.
 
+REINSTALL PREP
+=============
+  * backup keychain items
+  * backup voice memos
+  * backup messages
+  * backup passwords from lastpass
+  * backup bookmarks
+  * backup screenshots
+  * backup random stuff in dot folders under home folder
+
 INITIAL SETUP
 =============
 
@@ -62,6 +72,7 @@ APPLICATIONS
   * BookWright
   * CrossOver
   * Cyberduck
+  * Disk Cartography
   * Disk Inventory X
   * Display Menu (from app store)
   * Dolphin
@@ -71,8 +82,9 @@ APPLICATIONS
   * Giphy Capture
   * Google Chrome
   * Google Music Manager
+  * GZ Doom
   * HandBrake
-  * HexFiend
+  * Hex Fiend
   * ImageOptim
   * LastPass
   * MakeMKV
@@ -94,6 +106,7 @@ APPLICATIONS
   * WhatsApp
   * WineBottler
   * XAMPP
+  * XQuartz
 
 OLD BACKUP CONFIG FILES
 =======================

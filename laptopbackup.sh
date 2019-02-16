@@ -128,7 +128,9 @@ function run_backup_job() {
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/VirtualBox VMs/win98/" "${TARGET_DIR}/win98vm/"		
 
 	md5tool.sh CREATE "/Applications/Wine"
-	my_rsync ${RSYNC_ARGS} "/Applications/Wine" "${TARGET_DIR}/wine/"			
+	my_rsync ${RSYNC_ARGS} "/Applications/Wine" "${TARGET_DIR}/wine/"	
+
+	date > "${TARGET_DIR}/backupdate.txt"	
 }
 
 if test ${FLAG_BACKUP_USB} = "true"; then
@@ -200,21 +202,24 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	mkdir -p ${LOCAL_RSYNC_TARGET_DIR}/misc
 	cp ${MY_USER_HOME}/.bash_profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp -r ${MY_USER_HOME}/.ssh ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp -r ${MY_USER_HOME}/.vnc ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp -r ${MY_USER_HOME}/.subversion ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp /etc/hosts ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp ${MY_USER_HOME}/.m2/settings.xml ${LOCAL_RSYNC_TARGET_DIR}/misc/maven.settings.xml
 	cp /etc/profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp /etc/paths ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	cp ${MY_USER_HOME}/setupenv.sh ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp ${MY_USER_HOME}/.gitconfig ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	cp ${MY_USER_HOME}/.gitignore_global ${LOCAL_RSYNC_TARGET_DIR}/misc/
 	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
 	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip "${MY_USER_HOME}/Library/Services/"
+	date > ${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt
 
 	echo "backing up code"
 	my_rsync "${MY_USER_HOME}/Documents/code/" "${LOCAL_RSYNC_TARGET_DIR}/code/"
 
 	echo "backing up thunderbird"
 	my_rsync "${MY_USER_HOME}/Library/Thunderbird/" "${LOCAL_RSYNC_TARGET_DIR}/Thunderbird/"
-
-	echo "backing up desktop code"
-	my_rsync "${MY_USER_HOME}/Desktop/code/" "${LOCAL_RSYNC_TARGET_DIR}/desktop-code/"
 
 	echo "backing up downloads"
 	my_rsync "${MY_USER_HOME}/Downloads/" "${LOCAL_RSYNC_TARGET_DIR}/Downloads/"
@@ -226,8 +231,18 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	my_rsync "${MY_USER_HOME}/Library/Messages/" "${LOCAL_RSYNC_TARGET_DIR}/Messages/"
 
 	echo "backing up minecraft"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots" "${LOCAL_RSYNC_TARGET_DIR}/minecraft_screenshots/"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves" "${LOCAL_RSYNC_TARGET_DIR}/minecraft_saves/"	
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Minecraft"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots/" "${LOCAL_RSYNC_TARGET_DIR}/Minecraft/screenshots/"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves/" "${LOCAL_RSYNC_TARGET_DIR}/Minecraft/saves/"	
+
+	echo "Backing up fonts"
+	cp -r ${MY_USER_HOME}/Library/Fonts ${LOCAL_RSYNC_TARGET_DIR}/
+
+	echo "Backing Up Voice Memos"
+	cp -r "${MY_USER_HOME}/Music/iTunes/iTunes Media/Voice Memos" ${LOCAL_RSYNC_TARGET_DIR}/
+
+	echo "backing up terraria"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria/Worlds/" "${LOCAL_RSYNC_TARGET_DIR}/Terraria/"
 
 	echo "Creating md5 in ${LOCAL_RSYNC_TARGET_DIR}"
 	md5tool.sh CREATE "${LOCAL_RSYNC_TARGET_DIR}"
