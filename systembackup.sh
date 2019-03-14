@@ -49,62 +49,55 @@ function my_rsync() {
 }
 
 TODAY=$(date +%m%d%y)
+TARGET_PATH="/external/backup/server_backup"
+TARGET_MISC_PATH="${TARGET_PATH}/misc"
+SVN_BACKUP_TMP_PATH="${TARGET_MISC_PATH}/svnbackup-tmp"
+MY_USER_HOME=/Users/${MY_USER}
+SVN_ZIP_FILE="${TARGET_MISC_PATH}/svnbackup-`date +"%Y%m%d %H%M%S"`.zip"
+
 echo "[System Backup for $TODAY]"
 
-TARGET_PATH="/external/backup/server_backup"
 mkdir -p "${TARGET_PATH}"
 
 echo "[Cleaning out old backup]"
-find "${TARGET_PATH}" -maxdepth 1 -mindepth 1 -print0 | xargs -0 rm -rf
+rm -Rf "${TARGET_MISC_PATH}"
 
 echo "[Copying System Files]"
-SYSTEM_PATH="${TARGET_PATH}/system files"
-mkdir -p "${SYSTEM_PATH}"
-cp /etc/paths "${SYSTEM_PATH}/" # this holds the path variable for all users
-cp /etc/profile "${SYSTEM_PATH}/" # this runs for all users when they login for terminal
-cp /etc/bashrc "${SYSTEM_PATH}/"
-MY_USER_HOME=/Users/${MY_USER}
-cp ${MY_USER_HOME}/.bash_profile "${SYSTEM_PATH}/"
-cp -r ${MY_USER_HOME}/.ssh "${SYSTEM_PATH}/"
-cp /etc/hosts "${SYSTEM_PATH}/"
-cp ${MY_USER_HOME}/setupenv.sh "${SYSTEM_PATH}/"
+
+mkdir -p "${TARGET_MISC_PATH}"
+cp /etc/paths "${TARGET_MISC_PATH}/" # this holds the path variable for all users
+cp /etc/profile "${TARGET_MISC_PATH}/" # this runs for all users when they login for terminal
+cp /etc/bashrc "${TARGET_MISC_PATH}/"
+cp ${MY_USER_HOME}/.bash_profile "${TARGET_MISC_PATH}/"
+cp -r ${MY_USER_HOME}/.ssh "${TARGET_MISC_PATH}/"
+cp /etc/hosts "${TARGET_MISC_PATH}/"
+cp ${MY_USER_HOME}/setupenv.sh "${TARGET_MISC_PATH}/"
+my_rsync /external/misc/scripts "${TARGET_MISC_PATH}/"
 
 echo "[Backing up SVN]"
-
-SVN_BACKUP_DIR="/${TARGET_PATH}/svnbackup"
-rm -Rf "${SVN_BACKUP_DIR}"
-mkdir -p "${SVN_BACKUP_DIR}"
 
 function backup_repository() {
 	REPO_NAME=`basename ${1}`
 	echo "BACKING UP REPOSITORY: ${REPO_NAME}"
-	TARGET_DIRECTORY="${SVN_BACKUP_DIR}/${REPO_NAME}"
+	TARGET_DIRECTORY="${SVN_BACKUP_TMP_PATH}/${REPO_NAME}"
 	svnadmin hotcopy "${1}" "${TARGET_DIRECTORY}" 
 }
 
+mkdir -p "${SVN_BACKUP_TMP_PATH}"
 backup_repository /external/misc/svn/repo
 backup_repository /external/misc/svn/oldrepo
+zip -q -r "${ZIP_FILE}" "${SVN_BACKUP_TMP_PATH}"
+rm -Rf "${SVN_BACKUP_TMP_PATH}"
 
-ZIP_FILE="${TARGET_PATH}/svnbackup-`date +"%Y%m%d %H%M%S"`.zip"
-zip -q -r "${ZIP_FILE}" "${SVN_BACKUP_DIR}"
-
-rm -Rf "${SVN_BACKUP_DIR}"
-
-echo "[Copying Scripts]"
-mkdir -p "${TARGET_PATH}/scripts"
-my_rsync /scripts/ "${TARGET_PATH}/scripts/"
+md5tool.sh CREATE "${TARGET_MISC_PATH}"
 
 echo "[Copying Pictures]"
-mkdir -p "${TARGET_PATH}/Pictures"
-my_rsync "${MY_USER_HOME}/Pictures/" "${TARGET_PATH}/Pictures/"
+md5tool.sh CREATE "${MY_USER_HOME}/Pictures"
+my_rsync "${MY_USER_HOME}/Pictures" "${TARGET_PATH}/"
 
-echo "[Copying MobileSync]"
-mkdir -p "${TARGET_PATH}/MobileSync"
-my_rsync "${MY_USER_HOME}/Library/Application Support/MobileSync/" "${TARGET_PATH}/MobileSync/"
-
-
-echo "[Making checksum file for backup]"
-md5tool.sh CREATE "${TARGET_PATH}"
+echo "[Copying iPhone Backups]"
+md5tool.sh CREATE "${MY_USER_HOME}/MobileSync"
+my_rsync "${MY_USER_HOME}/Library/Application Support/MobileSync" "${TARGET_PATH}/"
 
 echo "[Resetting permissions]"
 chmod -R 755 /scripts
@@ -115,5 +108,7 @@ chmod -R 777 /external/misc/svn
 
 chmod -R 700 /external/backup
 chown -R jason /external/backup
+
+echo "${TODAY}" >> "${TARGET_PATH}/backupdates.txt"
 
 echo "[End System Backup - completed in ${SECONDS} seconds]"

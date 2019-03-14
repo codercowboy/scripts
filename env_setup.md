@@ -5,6 +5,7 @@ This is Jason's reminder list of setup steps when setting up a new OSX system.
 
 REINSTALL PREP
 =============
+  * backup "sent" email to server
   * backup keychain items
   * backup voice memos
   * backup messages
@@ -40,10 +41,17 @@ INITIAL SETUP
     * Enable hidden files in finder with:
       * defaults write com.apple.finder AppleShowAllFiles YES
     * Install open file/folder with sublimetext scripts
+    * Check File Sharing Permissions (especially change "Everyone" from "Read/Write" to "No Access")
+    * Rename computer in "Sharing" panel
+    * Add VPN settings
+    * enable full disk access to terminal:
+      * System prefs -> Security and Privacy -> Privacy Tab -> Full Disk Access -> Add Terminal
+      * https://apple.stackexchange.com/questions/341959/how-do-programs-access-library-mail-under-osx-10-14-mojave
   * Install JDK, Eclipse, Dev Tools
   * Setup backup directories 
     * SERVER: ln -s /Volumes/Macintosh\ HD2 /external
-  * Install Xcode, then homebrew, then these: rclone, wget, coreutils
+  * Install Xcode, then homebrew, then these: rclone, wget, coreutils (and others from the brewlist in backup)
+  * Open messages and ensure it can get msgs from iphone, needs to be opened once for this to start
   * Soft link md5sum with:
     * sudo ln -s /usr/local/opt/coreutils/libexec/gnubin/md5sum /usr/local/bin/md5sum
   * Restore system files (jason ~/setupenv.sh, etc/hosts, etc/profile, etc/paths, ssh keys, and so on)
@@ -59,6 +67,11 @@ INITIAL SETUP
   * Install open folder in terminal.
     * http://lifehacker.com/launch-an-os-x-terminal-window-from-a-specific-folder-1466745514
     * System Preferences > Keyboard > Shortcuts > Services -> "New Terminal at Folder"
+
+VERIFICATION
+============
+  * Ensure backup is working well
+  * Ensure time machine works
 
 APPLICATIONS
 ============

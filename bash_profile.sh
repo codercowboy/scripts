@@ -174,12 +174,11 @@ export -f terminal_tab_execute
 # DEVELOPMENT STUFF #
 #####################
 
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_181.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home
 export M2_HOME=${TOOLS}/apache-maven-3.5.4 # maven stuff
 export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
 
 export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin
-export PATH=${HOME}/.yarn/bin:${PATH} # yarn for angular2 dev
 export PATH=${PATH}:${TOOLS}/eclipse/Eclipse.app/Contents/MacOS
 export PATH=/usr/local/bin:/scripts:${PATH}
 export PATH=/Applications/RealVNC/VNC\ Viewer.app/Contents/MacOS:${PATH} #vnc viewer
@@ -196,6 +195,8 @@ export EDITOR=vi # fight me.
 ###############
 # OLD GARBAGE #
 ###############
+
+#export PATH=${HOME}/.yarn/bin:${PATH} # yarn for angular2 dev
 
 ########
 #
