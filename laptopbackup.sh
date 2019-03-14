@@ -198,37 +198,41 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	echo "[Starting Local Backup Step.]"
 
 	echo "backing up misc"
-	rm -Rvf ${LOCAL_RSYNC_TARGET_DIR}/misc
-	mkdir -p ${LOCAL_RSYNC_TARGET_DIR}/misc
-	cp ${MY_USER_HOME}/.bash_profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp -r ${MY_USER_HOME}/.ssh ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp -r ${MY_USER_HOME}/.vnc ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp -r ${MY_USER_HOME}/.subversion ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp /etc/hosts ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp ${MY_USER_HOME}/.m2/settings.xml ${LOCAL_RSYNC_TARGET_DIR}/misc/maven.settings.xml
-	cp /etc/profile ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp /etc/paths ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp ${MY_USER_HOME}/setupenv.sh ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp ${MY_USER_HOME}/.gitconfig ${LOCAL_RSYNC_TARGET_DIR}/misc/
-	cp ${MY_USER_HOME}/.gitignore_global ${LOCAL_RSYNC_TARGET_DIR}/misc/
+	MISC_FOLDER="${LOCAL_RSYNC_TARGET_DIR}/misc"
+	rm -Rvf ${MISC_FOLDER}
+	mkdir -p ${MISC_FOLDER}
+	cp ${MY_USER_HOME}/.bash_profile ${MISC_FOLDER}/
+	cp -r ${MY_USER_HOME}/.ssh ${MISC_FOLDER}/
+	cp -r ${MY_USER_HOME}/.vnc ${MISC_FOLDER}/
+	cp -r ${MY_USER_HOME}/.subversion ${MISC_FOLDER}/
+	cp /etc/hosts ${MISC_FOLDER}/
+	cp ${MY_USER_HOME}/.m2/settings.xml ${MISC_FOLDER}/maven.settings.xml
+	cp /etc/profile ${MISC_FOLDER}/
+	cp /etc/paths ${MISC_FOLDER}/
+	cp ${MY_USER_HOME}/setupenv.sh ${MISC_FOLDER}/
+	cp ${MY_USER_HOME}/.gitconfig ${MISC_FOLDER}/
+	cp ${MY_USER_HOME}/.gitignore_global ${MISC_FOLDER}/
+	mkdir -p ${MISC_FOLDER}/sublimetext
+	cp -r "${MY_USER_HOME}/Library/Application Support/Sublime Text 3/Packages/User" ${MISC_FOLDER}/sublimetext
 	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
 	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip "${MY_USER_HOME}/Library/Services/"
+	brew list -l > ${LOCAL_RSYNC_TARGET_DIR}/misc/brewlist.txt
 	date > ${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt
 
 	echo "backing up code"
-	my_rsync "${MY_USER_HOME}/Documents/code/" "${LOCAL_RSYNC_TARGET_DIR}/code/"
+	my_rsync "${MY_USER_HOME}/Documents/code" "${LOCAL_RSYNC_TARGET_DIR}/"
 
 	echo "backing up thunderbird"
-	my_rsync "${MY_USER_HOME}/Library/Thunderbird/" "${LOCAL_RSYNC_TARGET_DIR}/Thunderbird/"
+	my_rsync "${MY_USER_HOME}/Library/Thunderbird" "${LOCAL_RSYNC_TARGET_DIR}/"
 
 	echo "backing up downloads"
-	my_rsync "${MY_USER_HOME}/Downloads/" "${LOCAL_RSYNC_TARGET_DIR}/Downloads/"
+	my_rsync "${MY_USER_HOME}/Downloads" "${LOCAL_RSYNC_TARGET_DIR}/"
 
 	echo "backing up mail"
-	my_rsync "${MY_USER_HOME}/Library/Mail/" "${LOCAL_RSYNC_TARGET_DIR}/Mail/"
+	my_rsync "${MY_USER_HOME}/Library/Mail" "${LOCAL_RSYNC_TARGET_DIR}/"
 
 	echo "backing up messages"
-	my_rsync "${MY_USER_HOME}/Library/Messages/" "${LOCAL_RSYNC_TARGET_DIR}/Messages/"
+	my_rsync "${MY_USER_HOME}/Library/Messages" "${LOCAL_RSYNC_TARGET_DIR}/"
 
 	echo "backing up minecraft"
 	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Minecraft"
@@ -242,7 +246,7 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	cp -r "${MY_USER_HOME}/Music/iTunes/iTunes Media/Voice Memos" ${LOCAL_RSYNC_TARGET_DIR}/
 
 	echo "backing up terraria"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria/Worlds/" "${LOCAL_RSYNC_TARGET_DIR}/Terraria/"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria" "${LOCAL_RSYNC_TARGET_DIR}/"
 
 	echo "Creating md5 in ${LOCAL_RSYNC_TARGET_DIR}"
 	md5tool.sh CREATE "${LOCAL_RSYNC_TARGET_DIR}"
