@@ -13,6 +13,7 @@ REINSTALL PREP
   * backup bookmarks
   * backup screenshots
   * backup random stuff in dot folders under home folder
+  * other stuff backup scripts get such as voice memos, "add to itunes" in Pictures
 
 INITIAL SETUP
 =============
@@ -40,9 +41,9 @@ INITIAL SETUP
     * Add common apps to stick on dock
     * Enable hidden files in finder with:
       * defaults write com.apple.finder AppleShowAllFiles YES
-    * Install open file/folder with sublimetext scripts
     * Check File Sharing Permissions (especially change "Everyone" from "Read/Write" to "No Access")
     * Rename computer in "Sharing" panel
+    * Enable file sharing.
     * Add VPN settings
     * enable full disk access to terminal:
       * System prefs -> Security and Privacy -> Privacy Tab -> Full Disk Access -> Add Terminal
