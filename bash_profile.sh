@@ -135,6 +135,13 @@ function ssh_setup_passwordless() {
 
 export -f ssh_setup_passwordless
 
+function chrome_local_dev {
+	# from: https://stackoverflow.com/questions/3102819/disable-same-origin-policy-in-chrome
+	open /Applications/Google\ Chrome.app --args --user-data-dir="/var/tmp/Chrome dev session" --disable-web-security
+}
+
+export -f chrome_local_dev
+
 ######################
 # VARIOUS OSX TRICKS #
 ######################
