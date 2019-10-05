@@ -120,6 +120,7 @@ APPLICATIONS
   * WhatsApp
   * WineBottler
   * XAMPP
+  * XLD (flac ripper)
   * XQuartz
 
 OLD BACKUP CONFIG FILES

@@ -142,6 +142,23 @@ function chrome_local_dev {
 
 export -f chrome_local_dev
 
+function inspect_files {
+	if [ "${1}" = "" -o "${2}" = "" ]; then
+        echo "USAGE: inspect_files [path] [output file prefix]"
+        return
+    fi
+	echo "Gathering checksum info to file: ${2}-checksums.txt"
+	md5tool.sh DISPLAY "${1}" > "${2}-checksums.txt"	
+	# reverses output, instead of "2G ./somefile" it is now "./somefile [2G]"
+	SED_COMMAND="sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]]/::/' | sed -E 's/(.*)::(.*)/\2 [\1]/'"
+	echo "Gathering dir info to file: ${2}-dirs.txt"
+	eval "du -h \"${1}\" | ${SED_COMMAND}" > "${2}-dirs.txt"
+	echo "Gathering file info to file: ${2}-files.txt"
+	eval "du -a -h \"${1}\" | ${SED_COMMAND}" > "${2}-files.txt"
+}
+
+export -f inspect_files
+
 ######################
 # VARIOUS OSX TRICKS #
 ######################
@@ -182,7 +199,7 @@ export -f terminal_tab_execute
 #####################
 
 export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home
-export M2_HOME=${TOOLS}/apache-maven-3.5.4 # maven stuff
+export M2_HOME=${TOOLS}/apache-maven-3.6.1 # maven stuff
 export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
 
 export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin

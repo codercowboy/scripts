@@ -108,6 +108,7 @@ function print_usage() {
   echo "  JOINALL - join all $md5filename files found in PATH"
   echo "  JOINALLREMOVEOLD - join all $md5filename files found in PATH, files found are removed"
   echo "  REMOVEALL - remove all $md5filename files found in PATH"
+  echo "  DISPLAY - display info for all $md5filename files found in PATH"
   echo
   echo "EXIT STATUS"
   echo "  0 - no errors occurred"
@@ -409,6 +410,15 @@ function remove_all_md5 {
   done
 }
 
+function display_md5 {
+  for FILE in `find "${1}" -name "${md5filename}"`; do
+    FILE_DIR=`dirname "${FILE}"`
+    DIR_SIZE=`du -h -d 0 "${FILE_DIR}" | sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]].*//'`
+    MD5_FOR_FILE=`md5sum "${FILE}" | sed -E 's/[[:space:]].*//'`
+    echo "${FILE} [${DIR_SIZE}] ${MD5_FOR_FILE}" 
+  done
+}
+
 # arg 1 is directory to run test in
 function run_test() {
   TEST_DIR="${1}/md5tool-unittest"
@@ -497,6 +507,8 @@ elif test "$1" = "JOINALLREMOVEOLD"; then
   join_all_md5 "$2" "true"
 elif test "$1" = "REMOVEALL"; then
   remove_all_md5 "$2"
+elif test "$1" = "DISPLAY"; then
+  display_md5 "$2"
 else
   #unknown operation specified
   print_usage "Unknown operation: \"$1\""
