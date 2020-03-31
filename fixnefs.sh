@@ -2,7 +2,7 @@
 
 ########################################################################
 #
-# fixnefs.sh - fixes mismatched JPEG/NEF dates created by my renameit.sh
+# fixnefs.sh - fixes mismatched JPEG/NEF/ARW dates created by my renameit.sh
 #
 #   written by Jason Baker (jason@onejasonforsale.com)
 #   on github: https://github.com/codercowboy/scripts
@@ -11,6 +11,12 @@
 ########################################################################
 #
 # UPDATES:
+#
+# 2020/03/05
+#  - Don't rename files when the name is the same.
+#  - Don't rename files when target file exists.
+#  - Added counters / summary at end of run for sanity checking.
+#  - Added support for Sony "ARW" raw format files.
 #
 # 2017/05/02
 #  - Initial version
@@ -45,9 +51,8 @@
 ########################################################################
 
 
-function print_usage()
-{
-	echo "fixnefs.sh - fix NEF files to match JPGs"
+function print_usage() {
+	echo "fixnefs.sh - fix NEF/ARW file names to match JPGs"
 	echo
 	echo "USAGE"
 	echo "  fixnefs.sh PATH"
@@ -64,13 +69,11 @@ function print_usage()
 }
 
 
-if  test -z "$1"
-then
+if  [ -z "$1" ]; then
 	print_usage "Invalid arguments specified."
 fi
 
-if test ! -d "$1"
-then
+if [ ! -d "$1" ]; then
 	print_usage "$1 is not a directory."
 fi
 
@@ -83,51 +86,80 @@ BASE_PATH="${1%*/}/" #this will put a / on the end of the path if there isnt one
 
 #make for's argument seperator newline only
 IFS=$'\n'
-
-FILES=`find "${1}" -maxdepth 1 -type f -name '*' |  grep NEF | grep DSC | sort | tr -d '\15\32'`
-
 NL=$'\n'
-JPG_FILES=""
-for JPG_FILE in "`find "${1}" -maxdepth 1 -type f -name '*' | grep DSC | grep JPG`"
-do
-	JPG_BASENAME="`basename ${JPG_FILE}`"
-	#echo "Considering: ${JPG_BASENAME}"
-	JPG_FILES="${JPG_FILES}${NL}${JPG_BASENAME}"
-done
 
-for FILE in $FILES
-do	
-	ORIGINAL_BASENAME=`basename "${FILE}" | sed 's/.*DSC/DSC/' | sed 's/.NEF//'`
-	ORIGINAL_FILEDATE=`basename "${FILE}" | sed 's/ .*//'`	
-	#echo "current file: ${FILE}, originally: ${ORIGINAL_BASENAME}, date: ${ORIGINAL_FILEDATE}"	
+RAW_FILES=`find "${1}" -maxdepth 1 -type f |  egrep "NEF|ARW" | sort`
+RAW_FILES_COUNT_BEFORE=`find "${1}" -maxdepth 1 -type f |  egrep "NEF|ARW" | wc -l`
 
-	MATCHING_FILES="`printf "${JPG_FILES}" | grep ${ORIGINAL_BASENAME} | grep ${ORIGINAL_FILEDATE}`"
+JPG_FILES="`find "${1}" -maxdepth 1 -type f | grep DSC | grep -v ARW | grep -v NEF`"
 
-	if test -z `printf "${MATCHING_FILES}" | tr -d [[:space:]]`
-	then
-		echo "Found no matches for file ${ORIGINAL_BASENAME} with date ${ORIGINAL_FILEDATE}, trying just file part (${ORIGINAL_BASENAME})"
-		MATCHING_FILES="`printf "${JPG_FILES}" | grep ${ORIGINAL_BASENAME}`"
+CHANGED_FILE_COUNTER=0
+SKIPPED_FILE_NO_CHANGE_COUNTER=0
+SKIPPED_FILE_NO_MATCH_COUNTER=0
+SKIPPED_FILE_TOO_MANY_MATCHES_COUNTER=0
+SKIPPED_FILE_FILE_EXISTS_COUNTER=0
+
+for RAW_FILE in $RAW_FILES; do
+	ORIGINAL_EXTENSION=`basename "${RAW_FILE}" | sed 's/.*\.//'`
+	ORIGINAL_BASENAME=`basename "${RAW_FILE}" | sed 's/.*DSC/DSC/' | sed 's/.NEF//' | sed 's/.ARW//'`
+	ORIGINAL_FILEDATE=`basename "${RAW_FILE}" | sed 's/\(.*\) .*/\1/'`	
+	echo ""
+	echo "Current file: ${RAW_FILE}, originally: ${ORIGINAL_BASENAME}.${ORIGINAL_EXTENSION}, date: ${ORIGINAL_FILEDATE}"	
+
+	MATCHING_JPG_FILES="`echo "${JPG_FILES}" | grep ${ORIGINAL_BASENAME} | grep ${ORIGINAL_FILEDATE}`"
+	if [ -z `printf "${MATCHING_JPG_FILES}" | tr -d [[:space:]]` ]; then
+		echo "  Found no matches for file ${ORIGINAL_BASENAME} with date ${ORIGINAL_FILEDATE}, trying just file part (${ORIGINAL_BASENAME})"
+		MATCHING_JPG_FILES="`echo "${JPG_FILES}" | grep ${ORIGINAL_BASENAME}`"
 	fi
 
-	# echo "Matching: ${MATCHING_FILES}"
 	# tr command here removes all whitespace
-	MATCHING_FILE_COUNT="`printf "${MATCHING_FILES}${NL}" | wc -l |  tr -d '[[:space:]]'`"
-
-	if test -z `printf "${MATCHING_FILES}" | tr -d [[:space:]]`
-	then
-		MATCHING_FILE_COUNT="0"
+	MATCHING_JPG_FILE_COUNT="`echo "${MATCHING_JPG_FILES}" | wc -l | tr -d '[[:space:]]'`"
+	if [ -z "${MATCHING_JPG_FILES}" ]; then
+		MATCHING_JPG_FILE_COUNT="0"
 	fi
 
-	if test "1" = "${MATCHING_FILE_COUNT}"
-	then		
-		JPG_BASENAME="`echo "${MATCHING_FILES}" | sed 's/.JPG//'`"
-		TARGET_NAME="${1}/${JPG_BASENAME}.NEF"
-		echo "Found 1 match: ${MATCHING_FILES}, basename: ${JPG_BASENAME}"
-		echo "FIXED: ${FILE} -> ${TARGET_NAME}"
-		mv "${FILE}" "${TARGET_NAME}"
+	# echo "Matching: ${MATCHING_JPG_FILES}"
+
+	if [ "1" = "${MATCHING_JPG_FILE_COUNT}" ]; then
+		JPG_BASENAME="`echo "${MATCHING_JPG_FILES}" | sed 's/.JPG//'`"
+		TARGET_NAME="${JPG_BASENAME}.${ORIGINAL_EXTENSION}"
+		echo "  Found 1 match: ${MATCHING_JPG_FILES}"
+		#echo "  Match's basename: ${JPG_BASENAME}, target fixed file: ${TARGET_NAME}"
+		if [ -e "${TARGET_NAME}" ]; then
+			if [ "${RAW_FILE}" = "${TARGET_NAME}" ]; then
+				echo "  NOT FIXING, file name is same: ${TARGET_NAME}"
+				((SKIPPED_FILE_NO_CHANGE_COUNTER=SKIPPED_FILE_NO_CHANGE_COUNTER + 1))
+			else
+				echo "  NOT FIXING, file exists: ${TARGET_NAME}"
+				((SKIPPED_FILE_FILE_EXISTS_COUNTER=SKIPPED_FILE_FILE_EXISTS_COUNTER + 1))
+			fi			
+		else
+			echo "  FIXED: ${RAW_FILE} -> ${TARGET_NAME}"
+			mv "${RAW_FILE}" "${TARGET_NAME}"	
+			((CHANGED_FILE_COUNTER=CHANGED_FILE_COUNTER + 1))
+		fi		
+	elif [ "0" = "${MATCHING_JPG_FILE_COUNT}" ]; then
+		echo "  Skipping, no matches found."
+		((SKIPPED_FILE_NO_MATCH_COUNTER=SKIPPED_FILE_NO_MATCH_COUNTER + 1))
 	else
-		echo "current file: ${FILE}, originally: ${ORIGINAL_BASENAME}"	
-		echo "Found incorrect number of matches: ${MATCHING_FILE_COUNT} ${NL} ${MATCHING_FILES}"
-	fi
-	
+		echo "  Skipping, found incorrect number of matches: ${MATCHING_JPG_FILE_COUNT} ${NL} ${MATCHING_JPG_FILES}"
+		((SKIPPED_FILE_TOO_MANY_MATCHES_COUNTER=SKIPPED_FILE_TOO_MANY_MATCHES_COUNTER + 1))
+	fi		
 done
+
+RAW_FILES_COUNT_AFTER=`find "${1}" -maxdepth 1 -type f -name '*' |  egrep "NEF|ARW" | wc -l`
+
+echo ""
+echo "Processed ${RAW_FILES_COUNT_BEFORE} RAW files."
+echo "  Files Changed: ${CHANGED_FILE_COUNTER}"
+echo "  Files Skipped, already named correctly: ${SKIPPED_FILE_NO_CHANGE_COUNTER}"
+echo "  Files Skipped, no matches: ${SKIPPED_FILE_NO_MATCH_COUNTER}"
+echo "  Files Skipped, too many matches: ${SKIPPED_FILE_TOO_MANY_MATCHES_COUNTER}"
+echo "  Files Skipped, file exists: ${SKIPPED_FILE_FILE_EXISTS_COUNTER}"
+echo "  Files before starting: ${RAW_FILES_COUNT_BEFORE}"
+echo "  Files after renaming: ${RAW_FILES_COUNT_AFTER}"
+echo ""
+if [ ${RAW_FILES_COUNT_BEFORE} -ne ${RAW_FILES_COUNT_AFTER} ]; then
+	echo "WARNING: File count differs after rename operation, were some deleted?"
+	exit 1
+fi

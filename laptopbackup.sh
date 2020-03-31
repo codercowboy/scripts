@@ -57,8 +57,8 @@ fi
 MY_USER_HOME=/Users/${MY_USER}
 
 SERVER_RSYNC_TARGET_DIR=${MY_USER}@${MY_SERVER}:/external/backup/laptop_backup
-
-LOCAL_RSYNC_TARGET_DIR=${MY_USER_HOME}/Documents/laptop_backup
+LOCAL_BACKUP_DIR=${MY_USER_HOME}/Documents/backup
+LOCAL_RSYNC_TARGET_DIR=${LOCAL_BACKUP_DIR}/laptop_backup
 mkdir -p ${LOCAL_RSYNC_TARGET_DIR}
 
 FLAG_BACKUP_LOCAL="false"
@@ -109,14 +109,11 @@ function run_backup_job() {
 	TARGET_DIR="${1}"
 	RSYNC_ARGS="${2}"
 	
-	my_rsync ${RSYNC_ARGS} "${LOCAL_RSYNC_TARGET_DIR}/" "${TARGET_DIR}/backup/"
+	md5tool.sh CREATE "${LOCAL_BACKUP_DIR}/move_to_server/"
+	my_rsync ${RSYNC_ARGS} "${LOCAL_BACKUP_DIR}/" "${TARGET_DIR}/backup/"
 
-	echo "backing up stuff to move to server"
-	md5tool.sh CREATE "${MY_USER_HOME}/Documents/move_to_server/"
-	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Documents/move_to_server/" "${TARGET_DIR}/move_to_server/"
-			
 	md5tool.sh CREATE "${MY_USER_HOME}/Pictures/"
-	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Pictures" "${TARGET_DIR}/Pictures/"		
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Pictures/" "${TARGET_DIR}/Pictures/"		
 
 	md5tool.sh CREATE "${MY_USER_HOME}/Movies"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Movies/" "${TARGET_DIR}/Movies/"			
@@ -124,13 +121,14 @@ function run_backup_job() {
 	md5tool.sh CREATE "${MY_USER_HOME}/Dropbox"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Dropbox/" "${TARGET_DIR}/Dropbox/"			
 
-	md5tool.sh CREATE "${MY_USER_HOME}/VirtualBox VMs/win98"
-	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/VirtualBox VMs/win98/" "${TARGET_DIR}/win98vm/"		
+	md5tool.sh CREATE "${MY_USER_HOME}/Documents/win98vm"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Documents/win98vm/" "${TARGET_DIR}/win98vm/"		
 
-	md5tool.sh CREATE "/Applications/Wine"
-	my_rsync ${RSYNC_ARGS} "/Applications/Wine" "${TARGET_DIR}/wine/"	
+	md5tool.sh CREATE "${MY_USER_HOME}/Library/Application Support/MobileSync"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Library/Application Support/MobileSync/" "${TARGET_DIR}/MobileSync/"
 
-	date > "${TARGET_DIR}/backupdate.txt"	
+	#md5tool.sh CREATE "/Applications/Wine"
+	#my_rsync ${RSYNC_ARGS} "/Applications/Wine" "${TARGET_DIR}/wine/"		
 }
 
 if test ${FLAG_BACKUP_USB} = "true"; then
@@ -140,6 +138,8 @@ if test ${FLAG_BACKUP_USB} = "true"; then
 	  USB_DEST=/Volumes/USBBLUE3TB		  
 	elif [ -e /Volumes/USBRED4TB ]; then
 	  USB_DEST=/Volumes/USBRED4TB
+	 elif [ -e /Volumes/USB4TBSILVER ]; then
+	  USB_DEST=/Volumes/USB4TBSILVER
 	elif [ -e /Volumes/USBBLK4TB ]; then
 	  USB_DEST=/Volumes/USBBLK4TB
 	elif [ -e /Volumes/USB2TBSSD ]; then
@@ -217,6 +217,7 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
 	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip "${MY_USER_HOME}/Library/Services/"
 	brew list -l > ${LOCAL_RSYNC_TARGET_DIR}/misc/brewlist.txt
+	find /Applications -d 1 | sort > "${LOCAL_RSYNC_TARGET_DIR}/apps.txt"
 	date > ${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt
 
 	echo "backing up code"
@@ -233,6 +234,10 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 
 	echo "backing up messages"
 	my_rsync "${MY_USER_HOME}/Library/Messages" "${LOCAL_RSYNC_TARGET_DIR}/"
+
+	echo "backing up voice memos"
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/voicememos/"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/com.apple.voicememos/" "${LOCAL_RSYNC_TARGET_DIR}/voicememos/"
 
 	echo "backing up minecraft"
 	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Minecraft"

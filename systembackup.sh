@@ -73,6 +73,9 @@ cp -r ${MY_USER_HOME}/.ssh "${TARGET_MISC_PATH}/"
 cp /etc/hosts "${TARGET_MISC_PATH}/"
 cp ${MY_USER_HOME}/setupenv.sh "${TARGET_MISC_PATH}/"
 my_rsync /external/misc/scripts "${TARGET_MISC_PATH}/"
+brew list -l > ${TARGET_MISC_PATH}/brewlist.txt
+find /Applications -d 1 | sort > "${TARGET_MISC_PATH}/apps.txt"
+date > ${TARGET_MISC_PATH}/backupdate.txt
 
 echo "[Backing up SVN]"
 

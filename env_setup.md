@@ -45,6 +45,8 @@ INITIAL SETUP
     * Rename computer in "Sharing" panel
     * Enable file sharing.
     * Add VPN settings
+    * Change shell to bash in terminal: chsh -s /bin/bash
+    * Disable "force click" under "touch pad -> point and click"
     * enable full disk access to terminal:
       * System prefs -> Security and Privacy -> Privacy Tab -> Full Disk Access -> Add Terminal
       * https://apple.stackexchange.com/questions/341959/how-do-programs-access-library-mail-under-osx-10-14-mojave

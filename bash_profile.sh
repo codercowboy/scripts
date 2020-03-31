@@ -198,15 +198,16 @@ export -f terminal_tab_execute
 # DEVELOPMENT STUFF #
 #####################
 
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.5.jdk/Contents/Home
+#export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home
 export M2_HOME=${TOOLS}/apache-maven-3.6.1 # maven stuff
 export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
+export SCRIPTS_HOME="`dirname ${BASH_SOURCE[0]}`"
 
 export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin
 export PATH=${PATH}:${TOOLS}/eclipse/Eclipse.app/Contents/MacOS
-export PATH=/usr/local/bin:/scripts:${PATH}
+export PATH=/usr/local/bin:${SCRIPTS_HOME}:${PATH}
 export PATH=/Applications/RealVNC/VNC\ Viewer.app/Contents/MacOS:${PATH} #vnc viewer
-
 
 # make git log output human readable
 alias gitlog='git log --pretty=format:"%h - %an, %ar : %s"'
