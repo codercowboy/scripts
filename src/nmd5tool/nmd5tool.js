@@ -18,7 +18,13 @@ function log(message, object) {
 }
 function debug(message, object) { if (debugMode) { log(message, object); } }
 
-function debugobj(object) { debug("object", object); }
+function debugobj() { 
+	var object = [];
+	for (var i = 0; i < arguments.length; i++) {
+		object.push(arguments[i]);
+	}
+	debug("object", arguments.length == 1 ? arguments[0] : object); 
+}
 
 function error(message, object) { 
 	log("ERROR: " + message, object);
@@ -29,14 +35,17 @@ function error(message, object) {
 }
 
 function isDir(directoryPath) {
-	return fs.existsSync(directoryPath) && fs.lstatSync(directoryPath).isDirectory();
+	return directoryPath != null && fs.existsSync(directoryPath) && fs.statSync(directoryPath).isDirectory();
 }
 
 function isFile(filePath) {
-	return fs.existsSync(filePath) && fs.lstatSync(directoryPath).isFile();
+	return filePath != null && fs.existsSync(filePath) && fs.statSync(filePath).isFile();
 }
 
 function isHiddenFile(filePath) {
+	if (!isFile) {
+		return false;
+	}
 	var fileBaseName = path.posix.basename(filePath);
 	return fileBaseName.charAt(0) == ".";
 }
@@ -61,8 +70,9 @@ function processArgs() {
 		} else if ("debug" == arg) {
 			log("Debug mode enabled.");
 			debugMode = true;
-		} else if ("CREATE" == arg || "CREATEFOREACH" == arg
-			|| "CHECK" == arg || "CHECKALL" == arg) {
+		} else if ("create" == arg || "createforeach" == arg
+			|| "verify" == arg || "verifyall" == arg) {
+			debug("Mode: " + arg);
 			mode = arg;
 		}
 	}
@@ -111,11 +121,116 @@ function listFiles(directory, prefixSoFar) {
 	return result;
 }
 
+function mapBy(itemArray, propertyName) {
+	var map = [];
+	for (var item of itemArray) {
+		if (item == null) {
+			continue;
+		}
+		map[item[propertyName]] = item;
+	}
+	return map;
+}
+
+function getSortedKeys(array) {
+	var keys = Object.keys(array);
+	keys.sort();
+	return keys;
+}
+
 class MD5Result {
-	constructor(fileRelativePath, fullFilePath, checksum) {
+	constructor(fileRelativePath, fullFilePath, checksum, source) {
 		this.fileRelativePath = fileRelativePath;
 		this.fullFilePath = fullFilePath;
 		this.checksum = checksum;
+		this.source = source;
+		this.fileDetails = new Object();
+		if (isFile(fullFilePath)) {
+			var stats = fs.statSync(fullFilePath);
+			this.fileDetails.basename = path.basename(fullFilePath);
+			this.fileDetails.size = stats.size;
+			this.fileDetails.modTimeMs = stats.mtimeMs;
+		}
+	}
+}
+
+class MD5ResultDiff {
+	constructor(oldResults, newResults) {
+		this.errorsOccurred = false;
+		this.counts = [];
+		this.oldResults = oldResults;
+		this.newResults = newResults;
+		this.finishedResults = [];
+		var newMap = mapBy(newResults, "fileRelativePath");
+		var missingOldResults = [];		
+		var addTime = new Date().toDateString();
+		for (var oldResult of oldResults) {
+			var newResult = newMap[oldResult.fileRelativePath];
+			if (newResult == null) {
+				missingOldResults.push(oldResult);
+				continue;
+			}			
+			delete newMap[oldResult.fileRelativePath];
+			if (oldResult.checksum == newResult.checksum) {
+				oldResult.verifyStatus = "VERIFIED";
+				this.incrementCount("Verified");
+				this.finishedResults.push(oldResult);
+				continue;
+			} else {
+				debugobj(oldResult, newResult);
+				oldResult.verifyStatus = "FAILED (" + oldResult.checksum + " -> " + newResult.checksum + ")";
+				this.incrementCount("Failed");
+				this.incrementCount("Total Errors");
+				this.finishedResults.push(oldResult);
+				continue;
+			}
+		}
+		var leftoverNewFilesChecksumMap = mapBy(newMap, "checksum");
+		for (var oldResult of missingOldResults) {
+			var newResult = leftoverNewFilesChecksumMap[oldResult.checksum];
+			if (newResult == null) {
+				oldResult.verifyStatus = "REMOVED";
+				this.incrementCount("Removed");
+				this.incrementCount("Total Errors");
+				this.finishedResults.push(oldResult);
+				continue;
+			}
+			delete leftoverNewFilesChecksumMap[oldResult.checksum];
+			oldResult.verifyStatus = "MOVED -> " + newResult.fileRelativePath;
+			this.incrementCount("Moved");
+			this.incrementCount("Total Errors");
+			finishedResults.push(oldResult);
+		}
+		for (var newResult of leftoverNewFilesChecksumMap) {
+			if (newResult == null) {
+				continue;
+			}
+			newResult.verifyStatus = "ADDED " + addTime;
+			this.incrementCount("Added");
+			this.incrementCount("Total Errors");
+			this.finishedResults.push(newResult);
+		}
+
+		for (var key of getSortedKeys(this.finishedResults)) {
+			var result = this.finishedResults[key];
+			log(result.fileRelativePath + " " + result.verifyStatus);
+		}
+
+		log("\nVerification Results");
+		for (var countKey of getSortedKeys(this.counts)) {
+			log("  " + countKey + ": " + this.counts[countKey]);
+		}
+		log("\n  Final Status: " + (this.errorsOccurred ? "ERROR" : "SUCCESS"));
+	}
+	
+	incrementCount(countName) {
+		if ("Total Errors" == countName) {
+			this.errorsOccurred = true;
+		}
+		if (this.counts[countName] == null) {
+			this.counts[countName] = 0;
+		}
+		this.counts[countName] += 1;
 	}
 }
 
@@ -129,25 +244,92 @@ function getChecksums(directory) {
 		} else if (isHiddenFile(fullFilePath)) {
 			debug("+++ Skipping hidden file: " + file);
 			continue;
+		} else if (fullFilePath.indexOf(CHECKSUM_FILE_NAME) != -1) {
+			debug("+++ Skipping checksum file: " + file);
+			continue;
 		}
 		debug("+++ Processing File: " + file);
 		var checksum = md5(directory, file);
 
-		result.push(new MD5Result(file, fullFilePath, checksum));
+		result.push(new MD5Result(file, fullFilePath, checksum, "file system"));
 		debug("+++ Finished processing file: " + file);
 		debug("");
 	}
 	return result;
 }
 
+function readChecksumsFromFile(directory) {
+	var checksumFile = directory + path.sep + CHECKSUM_FILE_NAME;
+	debug("+++ Reading checksum file: " + checksumFile);
+	var fileContents = "" + fs.readFileSync(checksumFile);
+	var result = [];
+	var lastStatusLine = null;
+	var currentResult = new MD5Result(null, null, null);
+	var lineNumber = 0;
+	for (var line of fileContents.split("\n")) {
+		lineNumber += 1;
+		debug("Processing line #" + lineNumber + ": " + line);
+		if (line.indexOf("# File: ") == 0) {
+			//example line: # File: Eloquent_JavaScript.mobi :: {"basename":"Eloquent_JavaScript.mobi","size":2265889,"modTimeMs":1585984751704.6675}
+			debug("Found status line: " + line);
+			lastStatusLine = line;
+			continue;
+		} else if (line.indexOf("#") == 0 || line.trim().length == 0) {
+			lastStatusLine = null;
+			debug("Skipping line: '" + line + "'");
+			continue;
+		}
+		// example line: 7f2501e1d8c37ad446be0fe0d612d240  blah/Eloquent_JavaScript.mobi # Added Sat Apr 04 2020
+		var spaceLocation = line.indexOf(" ");
+		var commentLocation = line.indexOf("#");
+		if (spaceLocation == -1) {
+			error("Cannot parse line #" + lineNumber + ": " + line);
+			lastStatusLine = null;
+			continue;
+		}
+		var checksum = line.substr(0, spaceLocation);
+		var fileRelativePath = line.substr(spaceLocation + 2);
+		if (commentLocation != -1) {
+			var length = commentLocation - spaceLocation - 3;
+			console.log(length);
+			var fileRelativePath = line.substr(spaceLocation + 2, length);
+		}		
+		var status = commentLocation == -1 ? null : line.substr(commentLocation + 2);
+
+		var md5Result = new MD5Result(fileRelativePath, directory + path.sep + fileRelativePath, checksum, checksumFile);
+		md5Result.status = status;
+		if (lastStatusLine != null) {
+			md5Result.fileDetails = JSON.parse(lastStatusLine.substr(lastStatusLine.indexOf("::") + 3));
+		}
+		lastStatusLine = null;
+		debug("Parsed md5 result.", md5Result);
+		result.push(md5Result);
+	 }
+	 debug("+++ Finished reading checksum file: " + checksumFile);
+	 return result;
+}
+
 function createChecksumFile(directory) {
 	var fileContents = "";
-	var md5Results = processFiles(directory);
+	var md5Results = getChecksums(directory);
+	var addTime = new Date().toDateString();
 	for (var result of md5Results) {
-		fileContents += result.checksum + "  " + result.fileRelativePath + "\n";
+		var status = "";
+		if (result.fileDetails != null) {
+			status += "# File: " + result.fileDetails.basename + " :: " + JSON.stringify(result.fileDetails) + "\n";
+		}
+		status += result.checksum + "  " + result.fileRelativePath;
+		if (result.status == null) {
+			result.status = "Added " + addTime;
+		}
+		status += " # " + result.status;
+		fileContents += status + "\n";
 	}
 	var checksumFile = directory + path.sep + CHECKSUM_FILE_NAME;
 	log("Creating: " + checksumFile);
+	if (debugMode) {
+		debug("Checksum File Contents: \n" + fileContents + "\n\n");
+	}
 	fs.writeFileSync(checksumFile, fileContents);	
 }
 
@@ -167,18 +349,20 @@ function verifyChecksums(directory) {
 		exit(1);
 	}
 	log("Verifying: " + checksumFile);
+	var oldResults = readChecksumsFromFile(directory);
 	debug("++ Checksumming files in directory: " + directory);
-	var md5Results = processFiles(directory);
+	var currentResults = getChecksums(directory);
 	debug("++ Finished checksumming files in directory: " + directory);
+	var diff = new MD5ResultDiff(oldResults, currentResults);
 }
 
 async function main() {
 	processArgs();
-	if (mode == CREATE) {
+	if (mode == "create") {
 		createChecksumFile(cwd);
-	} else if (mode == CREATEFOREACH) {
+	} else if (mode == "createforeach") {
 		createChecksumForEach(cwd);
-	} else if (mode == CHECK) {
+	} else if (mode == "verify") {
 		verifyChecksums(cwd);
 	}	
 	
@@ -186,22 +370,3 @@ async function main() {
 }
 
 main();
-
-
-
-
-
-
-
-  
-//   async function asyncCall() {
-// 	console.log('calling');
-// 	const result = await resolveAfter2Seconds();
-// 	console.log(result);
-// 	// expected output: 'resolved'
-//   }
-
-//   log("slept");
-  
-//   asyncCall();
-
