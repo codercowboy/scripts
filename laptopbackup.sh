@@ -115,6 +115,9 @@ function run_backup_job() {
 	md5tool.sh CREATE "${MY_USER_HOME}/Pictures/"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Pictures/" "${TARGET_DIR}/Pictures/"		
 
+	md5tool.sh CREATE "${MY_USER_HOME}/Music/GarageBand/"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Music/GarageBand/" "${TARGET_DIR}/GarageBand/"		
+
 	md5tool.sh CREATE "${MY_USER_HOME}/Movies"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Movies/" "${TARGET_DIR}/Movies/"			
 
@@ -134,16 +137,14 @@ function run_backup_job() {
 if test ${FLAG_BACKUP_USB} = "true"; then
 	echo "[Starting USB Backup Step.]"
 	USB_DEST=""
-	if [ -e /Volumes/USBBLUE3TB ]; then
-	  USB_DEST=/Volumes/USBBLUE3TB		  
-	elif [ -e /Volumes/USBRED4TB ]; then
-	  USB_DEST=/Volumes/USBRED4TB
-	 elif [ -e /Volumes/USB4TBSILVER ]; then
+	if [ -e /Volumes/USB2TBSSD ]; then
+	  USB_DEST=/Volumes/USB2TBSSD	
+	elif [ -e /Volumes/USB4TBSILVER ]; then
 	  USB_DEST=/Volumes/USB4TBSILVER
 	elif [ -e /Volumes/USBBLK4TB ]; then
-	  USB_DEST=/Volumes/USBBLK4TB
-	elif [ -e /Volumes/USB2TBSSD ]; then
-	  USB_DEST=/Volumes/USB2TBSSD
+	  USB_DEST=/Volumes/USBBLK4TB	
+	elif [ -e /Volumes/USB8TB ]; then
+	  USB_DEST=/Volumes/USB8TB	
 	elif [ -e /Volumes/USB128GB ]; then
 	  USB_DEST=/Volumes/USB128GB
 	fi		

@@ -134,8 +134,8 @@ function create_md5() {
   CHECKSUM_FILE="${completedpath}${md5filename}"
 
   if test -e "${CHECKSUM_FILE}"; then
-    echo "Renaming Old ${CHECKSUM_FILE} to ${CHECKSUM_FILE}.old"
-    mv "${CHECKSUM_FILE}" "${CHECKSUM_FILE}.old"
+    echo "Removing Old ${CHECKSUM_FILE}"
+    rm "${CHECKSUM_FILE}"
     test_command_success "Could not remove old checksum file: ${CHECKSUM_FILE}"
   fi
   
@@ -151,6 +151,8 @@ function create_md5() {
   cd "$completedpath" && find . -type f -print0 | xargs -0 md5sum -b | grep -v "${md5filename}" >> "${md5filename}"
   test_command_success "Could not create checksum file: ${CHECKSUM_FILE}"
   cd - > /dev/null
+  CHECKSUM_FOR_FILE=$(md5sum "${completedpath}${md5filename}")
+  echo "${CHECKSUM_FOR_FILE}"  
 }
 
 function create_md5_for_each_subdirectory() {
