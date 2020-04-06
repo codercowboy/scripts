@@ -87,7 +87,7 @@ then
     print_usage "Archive path is not writable: $2"
 fi 
 
-echo "[osrotatelogs.sh]"
+echo "[osxrotatelogs.sh]"
 echo " logs directory: $1"
 echo " archive directory: $2"
 
