@@ -17,16 +17,16 @@ module.exports = class CCLog {
         console.log(message);
     }
     
-    debug(message, object) { if (this.debugMode) { log(message, object); } }
-    trace(message, object) { if (this.traceMode) { log(message, object); } }    
+    debug(message, object) { if (this.debugMode) { this.log(message, object); } }
+    trace(message, object) { if (this.traceMode) { this.log(message, object); } }    
     debugobj() {  if (this.debugMode) { this.log("object", arguments); } }
     traceobj() {  if (this.debugMode) { this.log("object", arguments); } }
     
     error(message, object) { 
-        log("ERROR: " + message, object);
+        this.log("ERROR: " + message, object);
         if (this.debugMode) { 
             console.trace();
-            log("");
+            this.log("");
         } 
     }
 };

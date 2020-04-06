@@ -28,7 +28,7 @@ var mode = null;
 function processArgs() {
 	if (process.argv.length < 3) {
 		cc.log.error("Not enough args.");
-		exit(1);
+		cc.exit(1);
 	}
 
 	for (var arg of process.argv) {
@@ -49,14 +49,14 @@ function processArgs() {
 
 	if (mode == null) {
 		cc.log.error("Execution mode was not specified.");
-		exit(1);
+		cc.exit(1);
 	}
 
 	cwd = process.argv[process.argv.length - 1];
 
 	if (!cc.fileutil.isDir(cwd)) {
 		cc.log.error("Directory does not exist: " + cwd);
-		exit(1);
+		cc.exit(1);
 	}
 
 	cwd = fs.realpathSync(cwd);
@@ -313,7 +313,7 @@ function verifyChecksums(directory) {
 	var checksumFile = directory + path.sep + CHECKSUM_FILE_NAME;
 	if (!cc.fileutil.isFile(checksumFile)) {
 		cc.log.error("Checksum file does not exist: " + checksumFile);
-		exit(1);
+		cc.exit(1);
 	}
 	log("Verifying: " + checksumFile);
 	var oldResults = readChecksumsFromFile(directory);
@@ -348,7 +348,7 @@ async function main() {
 	var timeElapsed = Date.now() - startTime;
 	cc.log.log("Execution Time: " + cc.stringutil.formatTimeHMSPretty(timeElapsed));
 	
-	exit(0);
+	cc.exit(0);
 }
 
 main();
