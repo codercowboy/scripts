@@ -1,10 +1,10 @@
 /*
 	TODO:
 
+	* Make create print out md5 of checksum file like md5tool.sh does
 	* Add verbose mode 
 	* verifyall should aggregate stats	
 	* add tests, need to test all error case paths ie removed, moved, added
-	* figure out how to webpack a distributable version
 	* add copyright license notice
 	* add usage
 
@@ -24,6 +24,7 @@ const CHECKSUM_FILE_NAME = "checksum.md5";
 
 var cwd = null;
 var mode = null;
+var testMode = false;
 
 function processArgs() {
 	if (process.argv.length < 3) {

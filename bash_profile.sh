@@ -51,8 +51,8 @@
 #
 ########################################################################
 
-export CODE=/Users/${MY_USER}/Documents/code
-export TOOLS=/Users/${MY_USER}/Documents/code/tools
+export CODE=${HOME}/Documents/code
+export TOOLS=${HOME}/Documents/code/tools
 
 alias code='cd ${CODE}'
 alias tools='cd ${TOOLS}'
@@ -69,25 +69,74 @@ alias ssh_my_server='ssh -L 2121:localhost:5900 -D 5901 ${MY_USER}@${MY_SERVER}'
 alias screenshare_my_server_ssh='open vnc://localhost:2121'
 alias screenshare_my_server_local='open vnc://${MY_SERVER_NAME}._rfb._tcp.local'
 
-######################
-# RANDOM ONE LINERS  #
-######################
-
-alias print_folder_size="du -h -d 0 '${1}' | tail -n 1 | sed 's/[[:blank:]].*//'"
-
-function my_rsync() { 
-	rsync -vrthW --del --stats --progress --chmod=u=rwx "${@}" 
-}
+###############
+# RSYNC STUFF #
+###############
 
 # export these functions so child processes, such as scripts running, can see them
 # https://stackoverflow.com/questions/33921371/command-not-found-when-running-defined-function-in-script-file
+
+# rsync arguments -v = verbose, -r = recursive, -t = preserve times, -W = whole file, 
+# --del = delete non existing files, -stats = print stats at end
+# --progress = show progress while transfering, --chmod = change perms on target
+# -c = skip based on checksum rather than mod-time/size, -n = dry run
+# --size-only = skip only based on size changes, not checksum or modtime
+# --modify-window = allow a mod time drive of N seconds, useful for fat32 with less precise mod-time storage
+# -i = show the reason rsync is transfering the file
+
+# itemized changes output example:
+# >f..t.... file.txt
+# c = checksum differs, s = size differs, t = mod time differs ,p = perms differ
+# o = owner differs, g = group differs
+
+function my_rsync_checksum() { 	
+	rsync -cvrthW --del --stats --progress --chmod=u=rwx "${@}" 
+}
+export -f my_rsync_checksum
+
+function my_rsync_checksum_test() { 	
+	rsync -incvrthW --del --stats --progress --chmod=u=rwx "${@}" 
+}
+export -f my_rsync_checksum_test
+
+function my_rsync() { 	
+	rsync -vrthW --del --stats --progress --chmod=u=rwx "${@}" 
+	echo ""
+	echo "WARNING: my_rsync only skips files based on size / mod time differences!"
+	echo "  for a more secure checksum-based transfer, use my_rsync_checksum"
+}
 export -f my_rsync
 
-function my_rsync_test() {
-	rsync -n -aii --delete "$@" | grep -v "\.f " | grep -v "\.d " | grep -v "f\.\." | grep -v '\.d\.\.' | sed 's/.f\+* /newfile /'
+function my_rsync_test() {	
+	rsync -invrthW --del --stats --progress --chmod=u=rwx "${@}" 
+	echo ""
+	echo "WARNING: my_rsync only skips files based on size / mod time differences!"
+	echo "  for a more secure checksum-based transfer, use my_rsync_checksum"
 }
-
 export -f my_rsync_test
+
+# fat32's modtime isn't as precise as other file systems, and there are various other problems
+# such as the fat32 not storing timezones, so during DST the file's mod time looks to be off by one hour
+# for this reason, on the fat32 alias we're using the --size-only command that ignores mod times
+# source: https://stackoverflow.com/questions/15640570/rsync-and-backup-and-changing-timezone
+# source: https://serverfault.com/questions/470046/rsync-from-linux-host-to-fat32
+# fat32's 
+
+function my_rsync_fat32() {	
+	rsync -rv --size-only --del --stats --progress "${@}" 
+	echo ""
+	echo "WARNING: my_rsync_fat32 only skips files based on size difference, not mod time!"
+	echo "WARNING: my_rsync_fat32 does not preserve mod-times!"
+}
+export -f my_rsync_fat32
+
+function my_rsync_fat32_test() {
+	rsync -inrv --size-only --del --stats --progress "${@}" 
+	echo ""
+	echo "WARNING: my_rsync_fat32 only skips files based on size difference, not mod time!"
+	echo "WARNING: my_rsync_fat32 does not preserve mod-times!"
+}
+export -f my_rsync_fat32_test
 
 function thin_local_snapshots() {
 	echo "Looking for local time machine backups to remove."
@@ -100,8 +149,19 @@ function thin_local_snapshots() {
 	done
 	echo "Finished removing time machine backups, removed ${REMOVAL_COUNT} backups."
 }
-
 export -f thin_local_snapshots
+
+function clean_dot_files {
+	if [ -z "${1}" ]; then
+		echo "USAGE: clean_dot_files [directory]"
+		return;
+	fi
+	echo "Removing ._* files"
+	find "${1}" -type f -name "._*" -exec rm -rv {} \;
+	echo "Removing .DS_Store files"
+	find "${1}" -type f -name ".DS_Store" -exec rm -rv {} \;
+}
+export -f clean_dot_files
 
 # from: http://www.linuxproblem.org/art_9.html
 function ssh_setup_passwordless() { 
@@ -122,7 +182,8 @@ function ssh_setup_passwordless() {
 
 	HOST_PUBLIC_KEY=`cat ~/.ssh/id_rsa.pub`
 
-	REMOTE_COMMAND="mkdir -p ~/.ssh; 
+	REMOTE_COMMAND="mkdir -p ~/.ssh;
+		chmod 700 ~/.ssh; 
 		echo \"${HOST_PUBLIC_KEY}\" >> ~/.ssh/authorized_keys;
 		chmod 644 ~/.ssh/authorized_keys;"
 
@@ -132,15 +193,15 @@ function ssh_setup_passwordless() {
 
 	echo "Passwordless setup is complete. You should now be able to verify the passwordless login with: ssh ${1}"
 }
-
 export -f ssh_setup_passwordless
 
 function chrome_local_dev {
 	# from: https://stackoverflow.com/questions/3102819/disable-same-origin-policy-in-chrome
 	open /Applications/Google\ Chrome.app --args --user-data-dir="/var/tmp/Chrome dev session" --disable-web-security
 }
-
 export -f chrome_local_dev
+
+
 
 function inspect_files {
 	if [ "${1}" = "" -o "${2}" = "" ]; then
@@ -153,10 +214,11 @@ function inspect_files {
 	SED_COMMAND="sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]]/::/' | sed -E 's/(.*)::(.*)/\2 [\1]/'"
 	echo "Gathering dir info to file: ${2}-dirs.txt"
 	eval "du -h \"${1}\" | ${SED_COMMAND}" > "${2}-dirs.txt"
-	echo "Gathering file info to file: ${2}-files.txt"
-	eval "du -a -h \"${1}\" | ${SED_COMMAND}" > "${2}-files.txt"
+	echo "Gathering file info w/ actual size to file: ${2}-files-real-size.txt"
+	eval "du -a \"${1}\" | ${SED_COMMAND}" > "${2}-files-real-size.txt"
+	echo "Gathering file info w/ summary size to file: ${2}-files-summary.txt"
+	eval "du -a -h \"${1}\" | ${SED_COMMAND}" > "${2}-files-summary.txt"
 }
-
 export -f inspect_files
 
 ######################
@@ -172,7 +234,6 @@ alias unlock_files='sudo chflags nouchg ${1}/*'
 # auto open sublime text to the given directory or file.
 # can't get this to work as an alias, oh well.
 function stext() { /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl "${@}"; } 
-
 export -f stext
 
 # from: https://stackoverflow.com/a/7177891
@@ -181,7 +242,6 @@ function terminal_open_tab() {
     osascript -e 'tell application "Terminal" to activate' \
         -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'
 }
-
 export -f terminal_open_tab
 
 function terminal_tab_execute() {
@@ -191,23 +251,27 @@ function terminal_tab_execute() {
     osascript -e 'tell application "Terminal" to activate'
     osascript -e "${COMMAND}"
 }
-
 export -f terminal_tab_execute
 
 #####################
 # DEVELOPMENT STUFF #
 #####################
 
-export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.5.jdk/Contents/Home
-#export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home
+alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.9.jdk/Contents/Home'
+alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home'
+
+usejdk11
+
 export M2_HOME=${TOOLS}/apache-maven-3.6.1 # maven stuff
 export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
 export SCRIPTS_HOME="`dirname ${BASH_SOURCE[0]}`"
+export GOPATH=${HOME}/Documents/code/tools/go
 
 export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin
 export PATH=${PATH}:${TOOLS}/eclipse/Eclipse.app/Contents/MacOS
 export PATH=/usr/local/bin:${SCRIPTS_HOME}:${PATH}
 export PATH=/Applications/RealVNC/VNC\ Viewer.app/Contents/MacOS:${PATH} #vnc viewer
+export PATH=${GOPATH}/bin:${PATH}
 
 # make git log output human readable
 alias gitlog='git log --pretty=format:"%h - %an, %ar : %s"'

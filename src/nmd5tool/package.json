@@ -1,6 +1,7 @@
 {
   "comments": [
-    "build with 'npm run-script webpack'"
+    "on first download, install dependencies with 'npm install'",
+    "build with 'npm run build'"
   ],
   "name": "nmd5tool",
   "version": "1.0.0",
@@ -8,10 +9,10 @@
   "private":true,
   "main": "nmd5tool.js",
   "scripts": {
-    "webpack": "npx webpack --config webpack.config.js && cp dist/nmd5tool.js ../../bin/"
+    "build": "npx webpack --config webpack.config.js && cp dist/nmd5tool.js ../../bin/"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Jason Baker (jason@onejasonforsale.com)",
+  "license": "Apache-2.0",
   "dependencies": {
     "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11"

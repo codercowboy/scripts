@@ -1,11 +1,11 @@
 {
   "name": "cclib",
   "version": "1.0.0",
-  "description": "",
+  "description": "Coder Cowboy Library of Javascript Utilities for Node.js",
   "main": "cclib.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC"
+  "author": "Jason Baker (jason@onejasonforsale.com)",
+  "license": "Apache-2.0"
 }
