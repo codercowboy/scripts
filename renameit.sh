@@ -128,7 +128,7 @@ IFS=$'\n'
 
 for FILE in $FILES
 do
-	echo "current file: $FILE"
+	# echo "current file: $FILE"
 	ORIGINAL_BASENAME=`basename "$FILE"`
 	
 	FILE_DATE=""
@@ -162,32 +162,28 @@ do
 	#if we still don't have a date, don't rename it..	    	    	   
 	
 	if test -z "$FILE_DATE"; then
-		echo "  Not renaming file, we couldn't find a date to rename it with."
+		echo "  Skipping file, we couldn't find a date to rename it with: ${FILE}"
 		((SKIPPED_FILE_NO_DATE=SKIPPED_FILE_NO_DATE + 1))
 	elif echo "${ORIGINAL_BASENAME}" | grep -q "${FILE_DATE}"; then
-		echo "  Not renaming file, it already contains the date: ${FILE_DATE}"
+		echo "  Skipping file, it already contains the date '${FILE_DATE}': ${FILE}"
 		((SKIPPED_FILE_ALREADY_RENAMED_COUNTER=SKIPPED_FILE_ALREADY_RENAMED_COUNTER + 1))
 	else
 		NEW_FILE="${BASE_PATH}${FILE_DATE}${APPENDER} ${ORIGINAL_BASENAME}"
 		
 		#make sure a file with the new name doesn't already exist
 		
-		echo "  trying $NEW_FILE"
+		#echo "  trying $NEW_FILE"
+		FILE_COUNTER=1;
 		while [ -e "$NEW_FILE" ]
 		do
-		  echo "  file $NEW_FILE already exists, trying something else.."
+		  #echo "  file $NEW_FILE already exists, trying something else.."
 		  #the file already exists, lets try to make it unique..
 		  NEW_FILE="${BASE_PATH}${FILE_DATE}${APPENDER} ${FILE_COUNTER} ${ORIGINAL_BASENAME}"
 		  ((FILE_COUNTER=FILE_COUNTER + 1))
-		  echo "  trying $NEW_FILE"
+		  #echo "  trying $NEW_FILE"
 		done
 			
-		FILE_COUNTER=1;
-			
-		echo "  Renaming File: $FILE"
-		echo "    to: $NEW_FILE"
-		echo
-		
+		echo "  Renaming file: ${FILE} to ${NEW_FILE}"		
 		mv "$FILE" "$NEW_FILE"
 		((CHANGED_FILE_COUNTER=CHANGED_FILE_COUNTER + 1))		
 	fi	

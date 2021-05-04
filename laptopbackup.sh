@@ -137,30 +137,22 @@ function run_backup_job() {
 if test ${FLAG_BACKUP_USB} = "true"; then
 	echo "[Starting USB Backup Step.]"
 	USB_DEST=""
-	if [ -e /Volumes/USB2TBSSD ]; then
-	  USB_DEST=/Volumes/USB2TBSSD	
-	elif [ -e /Volumes/USB4TBSILVER ]; then
-	  USB_DEST=/Volumes/USB4TBSILVER
-	elif [ -e /Volumes/USBBLK4TB ]; then
-	  USB_DEST=/Volumes/USBBLK4TB	
-	elif [ -e /Volumes/USB8TB ]; then
-	  USB_DEST=/Volumes/USB8TB	
-	elif [ -e /Volumes/USB128GB ]; then
-	  USB_DEST=/Volumes/USB128GB
-	fi		
-
-	if [ "${USB_DEST}" != "" ]; then
-		echo "Backing up to ${USB_DEST}"
-		echo "Continue? ('YES' to continue)"
+	for FILE in `find /Volumes -name "USB*" -maxdepth 1`; do
+		echo "Back up to ${FILE}? ('YES' to select, enter to skip)"
+		echo -n "> "
 		read ANSWER
-
-		if [ "${ANSWER}" != "YES" ]; then
-			echo "Skipping backup to USB, you did not answer 'YES', you said: ${ANSWER}"
-			exit 1
+		if [ "${ANSWER}" = "YES" ]; then
+			USB_DEST="${FILE}"			
+			break
 		fi
-	else
+		echo "Skipping this drive. You did not answer 'YES', you said: ${ANSWER}"
+	done		
+
+	if [ "${USB_DEST}" = "" ]; then
 		echo "Skipping backup to USB, could not find valid USB target to backup to."
 		exit 1
+	else
+		echo "Backing up to ${USB_DEST}"
 	fi
 fi #end usb dest selection section
 
@@ -218,7 +210,7 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
 	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip "${MY_USER_HOME}/Library/Services/"
 	brew list -l > ${LOCAL_RSYNC_TARGET_DIR}/misc/brewlist.txt
-	find /Applications -d 1 | sort > "${LOCAL_RSYNC_TARGET_DIR}/apps.txt"
+	find /Applications -d 1 | sort > "${LOCAL_RSYNC_TARGET_DIR}/misc/apps.txt"
 	date > ${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt
 
 	echo "backing up code"
@@ -290,6 +282,6 @@ chown -R ${MY_USER} ${LOCAL_RSYNC_TARGET_DIR}
 
 echo "backup size: `du -h -d 0 ${LOCAL_RSYNC_TARGET_DIR}`"
 echo "hd status: `df -h | grep disk1 | awk '{print $4;}'`"
-echo "finished in ${SECONDS} seconds"
+echo "finished in ${SECONDS} seconds at `date`"
 
 exit 0

@@ -16,6 +16,12 @@
 #
 # UPDATES:
 #
+# 2021/05/04
+#  - Add various my_rsync functions
+#  - Add various file zip/tar functions
+#  - Add various OSX functions
+#  - Add local_chrome_dev and clean_dot_files
+#
 # 2017/05/10
 #  - Add function to clear out local time machine backups
 #
@@ -201,8 +207,6 @@ function chrome_local_dev {
 }
 export -f chrome_local_dev
 
-
-
 function inspect_files {
 	if [ "${1}" = "" -o "${2}" = "" ]; then
         echo "USAGE: inspect_files [path] [output file prefix]"
@@ -252,6 +256,70 @@ function terminal_tab_execute() {
     osascript -e "${COMMAND}"
 }
 export -f terminal_tab_execute
+
+#####################
+# TAR/ZIP FUNCTIONS #
+#####################
+
+# arg 1 = command to run ie "zip -r"
+# arg 2 = description ie "Zipping"
+# arg 3 = path to process files in
+function process_each_file() {
+	if [ -z "${1}" -o -z "${2}" -o -z "${3}" ]; then
+		echo "USAGE: process_each_file [COMMAND] [DESCRIPTION] [DIRECTORY]"
+		echo "\tThis will zip each file (or directory) in the given directory."
+		return
+	fi
+	OLD_IFS=${IFS}
+	IFS=$'\n'
+	OLD_CWD=`pwd -P`
+	cd "${3}"
+	FILES=`find . -maxdepth 1`
+	for FILE in ${FILES}; do
+		if [ "." = "${FILE}" -o ".." = "${FILE}" ]; then
+			continue
+		fi
+		ORIGINAL_BASENAME=`basename "${FILE}"`
+		NEW_FILE="${ORIGINAL_BASENAME}.zip"
+		echo "${2} ${FILE} to ${NEW_FILE}"
+		CMD="${1} \"${NEW_FILE}\" \"${FILE}\""
+		echo "Executing: ${CMD}"
+		eval "${CMD}"
+	done
+	IFS=${OLD_IFS}
+	cd "${OLD_CWD}"
+}
+export -f process_each_file
+
+function zip_each() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: zip_each [DIRECTORY]"
+		echo "\tThis will zip each file (or directory) in the given directory."
+		return
+	fi
+	process_each_file "zip -r" "Zipping" "${1}"
+}
+export -f zip_each
+
+function tar_each() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: tar_each [DIRECTORY]"
+		echo "\tThis will tar (without gzip) each file (or directory) in the given directory."
+		return
+	fi
+	process_each_file "tar cvf" "Tarring" "${1}"
+}
+export -f tar_each
+
+function targz_each() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: targz_each [DIRECTORY]"
+		echo "\tThis will tar (with gzip) each file (or directory) in the given directory."
+		return
+	fi
+	process_each_file "tar cvfz" "Tarring" "${1}"
+}
+export -f targz_each
 
 #####################
 # DEVELOPMENT STUFF #
