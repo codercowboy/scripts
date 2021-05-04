@@ -184,7 +184,7 @@ function check_md5() {
 }
 
 function check_all_md5() {
-  for FILE in `find "${1}" -name "${md5filename}"`; do
+  for FILE in `find "${1}" -type f -name "${md5filename}" | sort`; do
     	check_md5 `dirname "${FILE}"`
   done
 }
@@ -371,7 +371,7 @@ function join_all_md5 {
 
   touch "${CHECKSUM_FILE}"
 
-  for FILE in `find "${1}" -name "${md5filename}"`; do
+  for FILE in `find "${1}" -type f -name "${md5filename}" | sort`; do
     if test "${CHECKSUM_FILE}" = "${FILE}"; then
       continue;
     fi
@@ -406,14 +406,14 @@ function join_all_md5 {
 
 function remove_all_md5 {
   echo "Removing all ${md5filename} files from ${1}"
-  for FILE in `find "${1}" -name "${md5filename}"`; do
+  for FILE in `find "${1}" -type f -name "${md5filename}" | sort`; do
     echo "Removing ${FILE}"
     rm "${FILE}"
   done
 }
 
 function display_md5 {
-  for FILE in `find "${1}" -name "${md5filename}"`; do
+  for FILE in `find "${1}" -type f -name "${md5filename}" | sort`; do
     FILE_DIR=`dirname "${FILE}"`
     DIR_SIZE=`du -h -d 0 "${FILE_DIR}" | sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]].*//'`
     MD5_FOR_FILE=`md5sum "${FILE}" | sed -E 's/[[:space:]].*//'`

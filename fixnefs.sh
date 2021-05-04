@@ -88,10 +88,10 @@ BASE_PATH="${1%*/}/" #this will put a / on the end of the path if there isnt one
 IFS=$'\n'
 NL=$'\n'
 
-RAW_FILES=`find "${1}" -maxdepth 1 -type f |  egrep "NEF|ARW" | sort`
-RAW_FILES_COUNT_BEFORE=`find "${1}" -maxdepth 1 -type f |  egrep "NEF|ARW" | wc -l`
+RAW_FILES=`find "${1}" -maxdepth 1 -type f |  egrep "NEF|ARW|arw|nef" | sort`
+RAW_FILES_COUNT_BEFORE=`find "${1}" -maxdepth 1 -type f |  egrep "NEF|ARW|nef|arw" | wc -l`
 
-JPG_FILES="`find "${1}" -maxdepth 1 -type f | grep DSC | grep -v ARW | grep -v NEF`"
+JPG_FILES="`find "${1}" -maxdepth 1 -type f | grep DSC | grep -v ARW | grep -v NEF | grep -v arw | grep -v nef`"
 
 CHANGED_FILE_COUNTER=0
 SKIPPED_FILE_NO_CHANGE_COUNTER=0
@@ -101,7 +101,7 @@ SKIPPED_FILE_FILE_EXISTS_COUNTER=0
 
 for RAW_FILE in $RAW_FILES; do
 	ORIGINAL_EXTENSION=`basename "${RAW_FILE}" | sed 's/.*\.//'`
-	ORIGINAL_BASENAME=`basename "${RAW_FILE}" | sed 's/.*DSC/DSC/' | sed 's/.NEF//' | sed 's/.ARW//'`
+	ORIGINAL_BASENAME=`basename "${RAW_FILE}" | sed 's/.*DSC/DSC/' | sed 's/.NEF//' | sed 's/.ARW//' | sed 's/.nef//' | sed 's/.arw//'`
 	ORIGINAL_FILEDATE=`basename "${RAW_FILE}" | sed 's/\(.*\) .*/\1/'`	
 	echo ""
 	echo "Current file: ${RAW_FILE}, originally: ${ORIGINAL_BASENAME}.${ORIGINAL_EXTENSION}, date: ${ORIGINAL_FILEDATE}"	
@@ -147,7 +147,7 @@ for RAW_FILE in $RAW_FILES; do
 	fi		
 done
 
-RAW_FILES_COUNT_AFTER=`find "${1}" -maxdepth 1 -type f -name '*' |  egrep "NEF|ARW" | wc -l`
+RAW_FILES_COUNT_AFTER=`find "${1}" -maxdepth 1 -type f -name '*' |  egrep "NEF|ARW|arw|nef" | wc -l`
 
 echo ""
 echo "Processed ${RAW_FILES_COUNT_BEFORE} RAW files."

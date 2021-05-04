@@ -31,6 +31,7 @@ INITIAL SETUP
     * Add external hard drives to spotlight ignore
     * Set Energy Settings as appropriate
     * Enable screen sharing, remote access, and file sharing
+    * click "allow full disk access" in remote login sharing "i" info icon panel
     * Fix mouse scroll direction
     * Fix dock location
     * Add internet accounts for mail/calendars/contacts
@@ -78,52 +79,68 @@ VERIFICATION
 
 APPLICATIONS
 ============
-
   * 4K Video Downloader
-  * Acorn (from app store)
+  * 4K YouTube to MP3
+  * Acorn (from store)
+  * AdvancedRestClient
   * Amazon Drive
   * Android File Transfer
   * Audacity
+  * Blackhole sound driver
   * Blackmagic Disk Speed Test
   * BookWright
   * CrossOver
   * Cyberduck
   * Disk Cartography
   * Disk Inventory X
-  * Display Menu (from app store)
+  * Display Menu (from store)
   * Dolphin
   * DosBox
   * Dropbox
-  * FTP Server (from app store)
+  * FileZilla Pro
+  * FileZilla
+  * Friendly Streaming
+  * FTP Server (from store)
+  * GarageBand
   * Giphy Capture
   * Google Chrome
-  * Google Music Manager
-  * GZ Doom
   * HandBrake
-  * Hex Fiend
-  * ImageOptim
+  * iMovie
+  * Keynote
+  * Kindle
   * LastPass
   * MakeMKV
+  * Messenger
+  * Microsoft Remote Desktop
   * Minecraft  
+  * MusicBrainz Picard
+  * Numbers
   * OpenEMU  
+  * Pages
   * Pixlr
   * RealVNC
   * Skype
+  * Slack
   * SmartSVN
-  * SourceTree
+  * Sourcetree
   * Spotify
   * Steam
   * Sublime Text
-  * The Unarchiver (from app store)
+  * The Unarchiver (from store)
   * Thunderbird
   * Transmission
+  * Utilities
   * VirtualBox
   * VLC
-  * WhatsApp
+  * VNC Viewer
+  * What
   * WineBottler
+  * xACT
   * XAMPP
-  * XLD (flac ripper)
+  * Xcode
+  * XLD
   * XQuartz
+  * Zoom
 
 OLD BACKUP CONFIG FILES
 =======================

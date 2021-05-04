@@ -95,10 +95,10 @@ function print_file_mod_time {
 # output is summarized file size such as "12K"
 function print_file_size_rounded {
 	if [ -d "${1}" ]; then
-		du -h -d 0 "${1}" | tail -n 1 | sed 's/^.//' | sed 's/[[:space:]].*//'
+		du -h -d 0 "${1}" | tail -n 1 | sed 's/^ //' | sed 's/[[:space:]].*//'
 		return
 	fi
-	du -h "${1}" | sed 's/^.//' | sed 's/[[:space:]].*//'
+	du -h "${1}" | sed 's/^ //' | sed 's/[[:space:]].*//'
 }
 
 # arg 1 is file path
@@ -127,7 +127,7 @@ oIFS=${IFS}
 IFS=$'\n'
 
 for FILE in ${FILES}; do
-	if [ -z "${FILE}" -o "." = "${FILE}" ]; then
+	if [ -z "${FILE}" -o "." = "${FILE}" -o ".." = "${FILE}" ]; then
 		continue
 	fi
 	if [ "${OPERATION}" = "size" ]; then
