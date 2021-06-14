@@ -263,24 +263,25 @@ export -f terminal_tab_execute
 
 # arg 1 = command to run ie "zip -r"
 # arg 2 = description ie "Zipping"
-# arg 3 = path to process files in
+# arg 3 = file extension for file ie "zip" or "tar"
+# arg 4 = path to process files in
 function process_each_file() {
-	if [ -z "${1}" -o -z "${2}" -o -z "${3}" ]; then
-		echo "USAGE: process_each_file [COMMAND] [DESCRIPTION] [DIRECTORY]"
+	if [ -z "${1}" -o -z "${2}" -o -z "${3}" -o -z "${4}" ]; then
+		echo "USAGE: process_each_file [COMMAND] [DESCRIPTION] [ARCHIVE FILE EXTENSION] [DIRECTORY]"
 		echo "\tThis will zip each file (or directory) in the given directory."
 		return
 	fi
 	OLD_IFS=${IFS}
 	IFS=$'\n'
 	OLD_CWD=`pwd -P`
-	cd "${3}"
+	cd "${4}"
 	FILES=`find . -maxdepth 1`
 	for FILE in ${FILES}; do
 		if [ "." = "${FILE}" -o ".." = "${FILE}" ]; then
 			continue
 		fi
 		ORIGINAL_BASENAME=`basename "${FILE}"`
-		NEW_FILE="${ORIGINAL_BASENAME}.zip"
+		NEW_FILE="${ORIGINAL_BASENAME}.${3}"
 		echo "${2} ${FILE} to ${NEW_FILE}"
 		CMD="${1} \"${NEW_FILE}\" \"${FILE}\""
 		echo "Executing: ${CMD}"
@@ -297,7 +298,7 @@ function zip_each() {
 		echo "\tThis will zip each file (or directory) in the given directory."
 		return
 	fi
-	process_each_file "zip -r" "Zipping" "${1}"
+	process_each_file "zip -r" "Zipping" "zip" "${1}"
 }
 export -f zip_each
 
@@ -307,7 +308,7 @@ function tar_each() {
 		echo "\tThis will tar (without gzip) each file (or directory) in the given directory."
 		return
 	fi
-	process_each_file "tar cvf" "Tarring" "${1}"
+	process_each_file "tar cvf" "Tarring" "tar" "${1}"
 }
 export -f tar_each
 
@@ -317,7 +318,7 @@ function targz_each() {
 		echo "\tThis will tar (with gzip) each file (or directory) in the given directory."
 		return
 	fi
-	process_each_file "tar cvfz" "Tarring" "${1}"
+	process_each_file "tar cvfz" "Tarring" "tar.gz" "${1}"
 }
 export -f targz_each
 
@@ -325,8 +326,8 @@ export -f targz_each
 # DEVELOPMENT STUFF #
 #####################
 
-alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.9.jdk/Contents/Home'
-alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk/Contents/Home'
+alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.11.jdk/Contents/Home'
+alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_291.jdk/Contents/Home'
 
 usejdk11
 

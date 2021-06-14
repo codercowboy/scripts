@@ -108,6 +108,9 @@ IFS=$'\n'
 function run_backup_job() {
 	TARGET_DIR="${1}"
 	RSYNC_ARGS="${2}"
+
+	echo "Backing up to: ${TARGET_DIR}"
+	mkdir -p "${TARGET_DIR}"
 	
 	md5tool.sh CREATE "${LOCAL_BACKUP_DIR}/move_to_server/"
 	my_rsync ${RSYNC_ARGS} "${LOCAL_BACKUP_DIR}/" "${TARGET_DIR}/backup/"
@@ -209,7 +212,7 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	cp -r "${MY_USER_HOME}/Library/Application Support/Sublime Text 3/Packages/User" ${MISC_FOLDER}/sublimetext
 	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
 	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip "${MY_USER_HOME}/Library/Services/"
-	brew list -l > ${LOCAL_RSYNC_TARGET_DIR}/misc/brewlist.txt
+	brew leaves > ${LOCAL_RSYNC_TARGET_DIR}/misc/brewlist.txt
 	find /Applications -d 1 | sort > "${LOCAL_RSYNC_TARGET_DIR}/misc/apps.txt"
 	date > ${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt
 
