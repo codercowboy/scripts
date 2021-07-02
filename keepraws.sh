@@ -71,7 +71,7 @@ if [ ! -d "$1" ]; then
 	print_usage "$1 is not a directory."
 fi
 
-JPG_FILES="`find "${1}" -maxdepth 1 -type f | grep DSC | egrep "JPG|jpeg"`"
+JPG_FILES="`find "${1}" -maxdepth 1 -type f | grep DSC | egrep "JPG|jpeg|jpg"`"
 #note, we need to put quotes around "${JPG_FILES}" to make bash print with new lines in the var
 #echo "found jpg files: \"${JPG_FILES}\""
 
