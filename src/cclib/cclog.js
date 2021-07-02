@@ -11,8 +11,10 @@ module.exports = class CCLog {
                 object.push(arguments[i]);
             }
             console.log(message, object);
-        } else if (arguments.length == 2) {
+            return;
+        } else if (arguments.length == 2 && object != null) {
             console.log(message, object);
+            return;
         }
         console.log(message);
     }

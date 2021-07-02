@@ -6,7 +6,7 @@
   "name": "nmd5tool",
   "version": "1.0.0",
   "description": "",
-  "private":true,
+  "private": true,
   "main": "nmd5tool.js",
   "scripts": {
     "build": "npx webpack --config webpack.config.js && cp dist/nmd5tool.js ../../bin/"

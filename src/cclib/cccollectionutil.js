@@ -1,10 +1,14 @@
 function mapBy(itemArray, propertyName) {
-	var map = [];
-	for (var item of itemArray) {
-		if (item == null) {
+	// Map reference: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+	var map = new Map();
+	if (itemArray == null || propertyName == null || itemArray.length == 0) {
+		return map;
+	}
+	for (var item of itemArray.values()) {
+		if (item == null || item[propertyName] == null) {
 			continue;
 		}
-		map[item[propertyName]] = item;
+		map.set(item[propertyName], item);
 	}
 	return map;
 }

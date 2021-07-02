@@ -22,7 +22,7 @@ function listFiles(directory, prefixSoFar) {
 	prefixSoFar = prefixSoFar == null ? "" : prefixSoFar;
 	var files = fs.readdirSync(directory);
 	var result = []
-	for (var file of files) {
+	for (var file of files.values()) {
 		var fullPath = directory + path.sep + file;
 		if (isDir(fullPath)) {
 			var prefix = (prefixSoFar == "") ? file : (prefixSoFar + path.sep + file);			
