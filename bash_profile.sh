@@ -295,7 +295,7 @@ export -f process_each_file
 function zip_each() {
 	if [ -z "${1}" ]; then
 		echo "USAGE: zip_each [DIRECTORY]"
-		echo "\tThis will zip each file (or directory) in the given directory."
+		echo "  This will zip each file (or directory) in the given directory."
 		return
 	fi
 	process_each_file "zip -r" "Zipping" "zip" "${1}"
@@ -305,7 +305,7 @@ export -f zip_each
 function tar_each() {
 	if [ -z "${1}" ]; then
 		echo "USAGE: tar_each [DIRECTORY]"
-		echo "\tThis will tar (without gzip) each file (or directory) in the given directory."
+		echo "  This will tar (without gzip) each file (or directory) in the given directory."
 		return
 	fi
 	process_each_file "tar cvf" "Tarring" "tar" "${1}"
@@ -315,11 +315,23 @@ export -f tar_each
 function targz_each() {
 	if [ -z "${1}" ]; then
 		echo "USAGE: targz_each [DIRECTORY]"
-		echo "\tThis will tar (with gzip) each file (or directory) in the given directory."
+		echo "  This will tar (with gzip) each file (or directory) in the given directory."
 		return
 	fi
 	process_each_file "tar cvfz" "Tarring" "tar.gz" "${1}"
 }
+export -f targz_each
+
+function untar_each() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: untar_each [DIRECTORY]"
+		echo "  This will untar each tar in the given directory."
+		return
+	fi
+	cd "${1}" && find . -iname \*.tar\* -exec tar -xvf {} \;
+	cd -
+}
+
 export -f targz_each
 
 #####################
