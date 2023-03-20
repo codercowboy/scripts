@@ -82,13 +82,20 @@ alias screenshare_my_server_local='open vnc://${MY_SERVER_NAME}._rfb._tcp.local'
 # export these functions so child processes, such as scripts running, can see them
 # https://stackoverflow.com/questions/33921371/command-not-found-when-running-defined-function-in-script-file
 
-# rsync arguments -v = verbose, -r = recursive, -t = preserve times, -W = whole file, 
-# --del = delete non existing files, -stats = print stats at end
-# --progress = show progress while transfering, --chmod = change perms on target
-# -c = skip based on checksum rather than mod-time/size, -n = dry run
-# --size-only = skip only based on size changes, not checksum or modtime
-# --modify-window = allow a mod time drive of N seconds, useful for fat32 with less precise mod-time storage
-# -i = show the reason rsync is transfering the file
+# rsync arguments 
+#  -v = verbose
+#  -r = recursive 
+#  -t = preserve times
+#  -W = transfer whole file 
+#  --del = delete non existing files
+#  -stats = print stats at end
+#  --progress = show progress while transfering
+#  --chmod = change perms on target
+#  -c = skip based on checksum rather than mod-time/size 
+#  --size-only = skip only based on size changes, not checksum or modtime
+#  --modify-window = allow a mod time drive of N seconds, useful for fat32 with less precise mod-time storage
+#  -i = show the reason rsync is transfering the file
+#  -n = dry run (test mode)
 
 # itemized changes output example:
 # >f..t.... file.txt
@@ -144,30 +151,9 @@ function my_rsync_fat32_test() {
 }
 export -f my_rsync_fat32_test
 
-function thin_local_snapshots() {
-	echo "Looking for local time machine backups to remove."
-	REMOVAL_COUNT=0
-	for SNAPSHOT in `tmutil listlocalsnapshots /`; do
-		SNAPSHOT_DATE=`echo "${SNAPSHOT}" | sed 's/com.apple.TimeMachine.//'`
-		echo "Removing snapshot '${SNAPSHOT}', date: ${SNAPSHOT_DATE}"
-		tmutil deletelocalsnapshots ${SNAPSHOT_DATE}
-		REMOVAL_COUNT=$((REMOVAL_COUNT+1))
-	done
-	echo "Finished removing time machine backups, removed ${REMOVAL_COUNT} backups."
-}
-export -f thin_local_snapshots
-
-function clean_dot_files {
-	if [ -z "${1}" ]; then
-		echo "USAGE: clean_dot_files [directory]"
-		return;
-	fi
-	echo "Removing ._* files"
-	find "${1}" -type f -name "._*" -exec rm -rv {} \;
-	echo "Removing .DS_Store files"
-	find "${1}" -type f -name ".DS_Store" -exec rm -rv {} \;
-}
-export -f clean_dot_files
+##############
+# MISC STUFF #
+##############
 
 # from: http://www.linuxproblem.org/art_9.html
 function ssh_setup_passwordless() { 
@@ -201,12 +187,6 @@ function ssh_setup_passwordless() {
 }
 export -f ssh_setup_passwordless
 
-function chrome_local_dev {
-	# from: https://stackoverflow.com/questions/3102819/disable-same-origin-policy-in-chrome
-	open /Applications/Google\ Chrome.app --args --user-data-dir="/var/tmp/Chrome dev session" --disable-web-security
-}
-export -f chrome_local_dev
-
 function inspect_files {
 	if [ "${1}" = "" -o "${2}" = "" ]; then
         echo "USAGE: inspect_files [path] [output file prefix]"
@@ -224,6 +204,8 @@ function inspect_files {
 	eval "du -a -h \"${1}\" | ${SED_COMMAND}" > "${2}-files-summary.txt"
 }
 export -f inspect_files
+
+alias yt_dlp_mp3='yt-dlp -x --audio-format mp3 --audio-quality 0 ${1}'
 
 ######################
 # VARIOUS OSX TRICKS #
@@ -257,6 +239,31 @@ function terminal_tab_execute() {
 }
 export -f terminal_tab_execute
 
+function thin_local_snapshots() {
+	echo "Looking for local time machine backups to remove."
+	REMOVAL_COUNT=0
+	for SNAPSHOT in `tmutil listlocalsnapshots /`; do
+		SNAPSHOT_DATE=`echo "${SNAPSHOT}" | sed 's/com.apple.TimeMachine.//'`
+		echo "Removing snapshot '${SNAPSHOT}', date: ${SNAPSHOT_DATE}"
+		tmutil deletelocalsnapshots ${SNAPSHOT_DATE}
+		REMOVAL_COUNT=$((REMOVAL_COUNT+1))
+	done
+	echo "Finished removing time machine backups, removed ${REMOVAL_COUNT} backups."
+}
+export -f thin_local_snapshots
+
+function clean_dot_files {
+	if [ -z "${1}" ]; then
+		echo "USAGE: clean_dot_files [directory]"
+		return;
+	fi
+	echo "Removing ._* files"
+	find "${1}" -type f -name "._*" -exec rm -rv {} \;
+	echo "Removing .DS_Store files"
+	find "${1}" -type f -name ".DS_Store" -exec rm -rv {} \;
+}
+export -f clean_dot_files
+
 #####################
 # TAR/ZIP FUNCTIONS #
 #####################
@@ -268,14 +275,14 @@ export -f terminal_tab_execute
 function process_each_file() {
 	if [ -z "${1}" -o -z "${2}" -o -z "${3}" -o -z "${4}" ]; then
 		echo "USAGE: process_each_file [COMMAND] [DESCRIPTION] [ARCHIVE FILE EXTENSION] [DIRECTORY]"
-		echo "\tThis will zip each file (or directory) in the given directory."
+		echo "\tThis will archive each file (or directory) in the given directory."
 		return
 	fi
 	OLD_IFS=${IFS}
 	IFS=$'\n'
 	OLD_CWD=`pwd -P`
 	cd "${4}"
-	FILES=`find . -maxdepth 1`
+	FILES=`find . -maxdepth 1 | sort`
 	for FILE in ${FILES}; do
 		if [ "." = "${FILE}" -o ".." = "${FILE}" ]; then
 			continue
@@ -334,25 +341,87 @@ function untar_each() {
 
 export -f targz_each
 
+function 7z_each() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: 7z_each [DIRECTORY]"
+		echo "  This will 7zip (with lzma2) each file (or directory) in the given directory."
+		return
+	fi
+
+	# example: 7z a -r -t7z -m0=lzma2 -mx=9 -mfb=273 -md=1g -ms=10g -mmt=off -mmtf=off -mqs=on -bt -bb3 archife_file_name.7z /path/to/files
+	# argument explanations from https://stackoverflow.com/a/52771612
+	#   a - add files to archive
+	#   -r - Recurse subdirectories
+	#   -t7z - Set type of archive (7z in your case)
+	#   -m0=lzma2 - Set compression method to LZMA2
+	#   -mx=9 - Sets level of compression. x=9 - Ultra
+	#   -mfb=273 - Sets number of fast bytes for LZMA. 
+	#   -md=4g - Sets Dictionary size for LZMA
+	#   -ms=8g - Enables solid mode w/ 8g block size - might decrease compression ratio
+	#   -mqs=on - Sort files by type in solid archives. To store identical files together.
+	#   -mmt=off - Sets multithreading mode to OFF. 
+	#   -mmtf=off - Set multithreading mode for filters to OFF.
+	#   -myx=9 - Sets level of file analysis to maximum, analysis of all files (Delta and executable filters).
+	#   -bt - show execution time statistics
+	#   -bb3 - set output log level 
+
+	#CMD_PREFIX="7z a -r -t7z -m0=lzma2 -mx=9 -mfb=273 -md=1g -ms=4g -mmt=off -mmtf=off -mqs=on -bt -bb3"
+	#CMD_PREFIX="7z a -r -t7z -m0=lzma2 -mfb=273 -md=1g -ms=2g -mqs=on -bt -bb3"
+	CMD_PREFIX="7z a -r -t7z -m0=lzma2 -mmt=off -mmtf=off -mqs=on -bt -bb3"
+	process_each_file "${CMD_PREFIX}" "7Zipping" "7z" "${1}"
+}
+export -f 7z_each
+
+# ffmpeg stuff
+
+function ffmpeg_convert_webm_to_mp3() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: ffmpeg_convert_webm_to_mp3 [DIRECTORY]"
+		echo "  This will convert each webm in the given directory to mp3."
+		return
+	fi
+	OLD_IFS=${IFS}
+	IFS=$'\n'
+	FILES=`find ${1} -type f | grep webm`
+	for FILE in ${FILES}; do
+	    echo -e "Processing video: ${FILE}";	    
+	    ffmpeg -i "${FILE}" -codec:a libmp3lame -b:a 320k -ar 44100 -y "${1}/${FILE%.webm}.mp3";
+	done;
+	IFS=${OLD_IFS}
+}
+export -f ffmpeg_convert_webm_to_mp3
+
+# youtube-dl stuff
+
+# youtube-dl -f bestaudio --restrict-filenames --max-downloads 999 -r 5000K --buffer-size 16K --audio-quality 0 --sleep-interval 60 --max-sleep-interval 300 "https://www.youtube.com/playlist?list=PLVNmxQCckyw5bo9u008T5cZNJ_QwWW5o1"
+
 #####################
 # DEVELOPMENT STUFF #
 #####################
 
-alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.11.jdk/Contents/Home'
+function chrome_local_dev {
+	# from: https://stackoverflow.com/questions/3102819/disable-same-origin-policy-in-chrome
+	open /Applications/Google\ Chrome.app --args --user-data-dir="/var/tmp/Chrome dev session" --disable-web-security
+}
+export -f chrome_local_dev
+
+alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.16.jdk/Contents/Home'
 alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_291.jdk/Contents/Home'
 
 usejdk11
 
-export M2_HOME=${TOOLS}/apache-maven-3.6.1 # maven stuff
-export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
 export SCRIPTS_HOME="`dirname ${BASH_SOURCE[0]}`"
-export GOPATH=${HOME}/Documents/code/tools/go
 
-export PATH=${JAVA_HOME}/bin:${PATH}:${M2_HOME}:${M2_HOME}/bin
-export PATH=${PATH}:${TOOLS}/eclipse/Eclipse.app/Contents/MacOS
-export PATH=/usr/local/bin:${SCRIPTS_HOME}:${PATH}
-export PATH=/Applications/RealVNC/VNC\ Viewer.app/Contents/MacOS:${PATH} #vnc viewer
-export PATH=${GOPATH}/bin:${PATH}
+export M2_HOME="${TOOLS}/apache-maven-3.8.6" # maven stuff
+export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
+export MVND_HOME="${TOOLS}/mvnd-0.8.2-darwin-amd64" # mvnd
+export GOPATH=${HOME}/Documents/code/tools/go #go
+
+
+export PATH="${JAVA_HOME}/bin:${M2_HOME}:${M2_HOME}/bin:${MVND_HOME}/bin:${GOPATH}/bin:${PATH}"
+export PATH="${PATH}:${TOOLS}/eclipse/Eclipse.app/Contents/MacOS" # eclipse
+export PATH="/usr/local/bin:${SCRIPTS_HOME}:${PATH}" # homebrew stuff is installed here
+export PATH="/Applications/RealVNC/VNC\ Viewer.app/Contents/MacOS:${PATH}" #vnc viewer
 
 # make git log output human readable
 alias gitlog='git log --pretty=format:"%h - %an, %ar : %s"'

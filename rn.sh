@@ -90,7 +90,7 @@ FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
 IFS=$'\n'
 
 for FILE in ${FILES}; do
-	echo "current file: ${FILE}"
+	# echo "current file: ${FILE}"
 
 	ORIGINAL_BASENAME=`basename "$FILE"`
 	ORIGINAL_DIRNAME=`dirname "${FILE}"`
@@ -110,7 +110,7 @@ for FILE in ${FILES}; do
 		echo "ERROR: target file already exists, not renaming: ${NEW_FILE}"				
 	else
 		echo "  Renaming File: ${FILE}"
-		echo "    to: ${NEW_FILE}"
+		echo "             to: ${NEW_FILE}"
 		echo
 
 		mv "${FILE}" "${ORIGINAL_DIRNAME}/${NEW_FILE}"

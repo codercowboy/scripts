@@ -194,60 +194,55 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	echo "[Starting Local Backup Step.]"
 
 	echo "backing up misc"
-	MISC_FOLDER="${LOCAL_RSYNC_TARGET_DIR}/misc"
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/System/"
+	MISC_FOLDER="${LOCAL_RSYNC_TARGET_DIR}/System/misc"
 	rm -Rvf ${MISC_FOLDER}
 	mkdir -p ${MISC_FOLDER}
+
+	cp /etc/hosts ${MISC_FOLDER}/
+	cp /etc/profile ${MISC_FOLDER}/
+	cp /etc/paths ${MISC_FOLDER}/
 	cp ${MY_USER_HOME}/.bash_profile ${MISC_FOLDER}/
+	cp ${MY_USER_HOME}/.bash_logout ${MISC_FOLDER}/
+	cp ${MY_USER_HOME}/setupenv.sh ${MISC_FOLDER}/
+	cp ${MY_USER_HOME}/.gitconfig ${MISC_FOLDER}/
+	cp -r ${CODE}/tools/git ${MISC_FOLDER}/
 	cp -r ${MY_USER_HOME}/.ssh ${MISC_FOLDER}/
 	cp -r ${MY_USER_HOME}/.vnc ${MISC_FOLDER}/
 	cp -r ${MY_USER_HOME}/.subversion ${MISC_FOLDER}/
-	cp /etc/hosts ${MISC_FOLDER}/
+	cp -r ${MY_USER_HOME}/.config/filezilla ${MISC_FOLDER}/	
 	cp ${MY_USER_HOME}/.m2/settings.xml ${MISC_FOLDER}/maven.settings.xml
-	cp /etc/profile ${MISC_FOLDER}/
-	cp /etc/paths ${MISC_FOLDER}/
-	cp ${MY_USER_HOME}/setupenv.sh ${MISC_FOLDER}/
-	cp ${MY_USER_HOME}/.gitconfig ${MISC_FOLDER}/
-	cp ${MY_USER_HOME}/.gitignore_global ${MISC_FOLDER}/
+	
 	mkdir -p ${MISC_FOLDER}/sublimetext
-	cp -r "${MY_USER_HOME}/Library/Application Support/Sublime Text 3/Packages/User" ${MISC_FOLDER}/sublimetext
-	rm ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip
-	zip -r ${LOCAL_RSYNC_TARGET_DIR}/misc/automator_services.zip "${MY_USER_HOME}/Library/Services/"
-	brew leaves > ${LOCAL_RSYNC_TARGET_DIR}/misc/brewlist.txt
-	find /Applications -d 1 | sort > "${LOCAL_RSYNC_TARGET_DIR}/misc/apps.txt"
+	cp -r "${MY_USER_HOME}/Library/Application Support/Sublime Text 3/Packages/User" "${MISC_FOLDER}/sublimetext"
+	rm ${MISC_FOLDER}/automator_services.zip
+	zip -r ${MISC_FOLDER}/automator_services.zip "${MY_USER_HOME}/Library/Services/"
+	brew leaves > ${MISC_FOLDER}/brewlist.txt
+	find /Applications -maxdepth 1 | sort > "${MISC_FOLDER}/apps.txt"
 	date > ${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt
 
 	echo "backing up code"
 	my_rsync "${MY_USER_HOME}/Documents/code" "${LOCAL_RSYNC_TARGET_DIR}/"
 
-	echo "backing up thunderbird"
-	my_rsync "${MY_USER_HOME}/Library/Thunderbird" "${LOCAL_RSYNC_TARGET_DIR}/"
-
+	echo "backing up system stuff (thunderbird, mail, messages, voice memos, fonts)"
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/System/"
+	my_rsync "${MY_USER_HOME}/Library/Thunderbird" "${LOCAL_RSYNC_TARGET_DIR}/System/"
+	my_rsync "${MY_USER_HOME}/Library/Mail" "${LOCAL_RSYNC_TARGET_DIR}/System/"
+	my_rsync "${MY_USER_HOME}/Library/Messages" "${LOCAL_RSYNC_TARGET_DIR}/System/"
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/voicememos/"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/com.apple.voicememos/" "${LOCAL_RSYNC_TARGET_DIR}/System/voicememos/"	
+	my_rsync "${MY_USER_HOME}/Library/Fonts" "${LOCAL_RSYNC_TARGET_DIR}/System/"
+	
 	echo "backing up downloads"
 	my_rsync "${MY_USER_HOME}/Downloads" "${LOCAL_RSYNC_TARGET_DIR}/"
 
-	echo "backing up mail"
-	my_rsync "${MY_USER_HOME}/Library/Mail" "${LOCAL_RSYNC_TARGET_DIR}/"
-
-	echo "backing up messages"
-	my_rsync "${MY_USER_HOME}/Library/Messages" "${LOCAL_RSYNC_TARGET_DIR}/"
-
-	echo "backing up voice memos"
-	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/voicememos/"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/com.apple.voicememos/" "${LOCAL_RSYNC_TARGET_DIR}/voicememos/"
-
-	echo "backing up minecraft"
-	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Minecraft"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots/" "${LOCAL_RSYNC_TARGET_DIR}/Minecraft/screenshots/"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves/" "${LOCAL_RSYNC_TARGET_DIR}/Minecraft/saves/"	
-
-	echo "Backing up fonts"
-	cp -r ${MY_USER_HOME}/Library/Fonts ${LOCAL_RSYNC_TARGET_DIR}/
-
-	echo "Backing Up Voice Memos"
-	cp -r "${MY_USER_HOME}/Music/iTunes/iTunes Media/Voice Memos" ${LOCAL_RSYNC_TARGET_DIR}/
-
-	echo "backing up terraria"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria" "${LOCAL_RSYNC_TARGET_DIR}/"
+	echo "backing up games (minecraft, terraria, factorio)"
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Games/"
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots/" "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft/screenshots/"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves/" "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft/saves/"	
+	my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
+	my_rsync "${MY_USER_HOME}/Library/Application Support/factorio" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
 
 	echo "Creating md5 in ${LOCAL_RSYNC_TARGET_DIR}"
 	md5tool.sh CREATE "${LOCAL_RSYNC_TARGET_DIR}"
@@ -284,7 +279,7 @@ chmod -R 700 ${LOCAL_RSYNC_TARGET_DIR}
 chown -R ${MY_USER} ${LOCAL_RSYNC_TARGET_DIR}
 
 echo "backup size: `du -h -d 0 ${LOCAL_RSYNC_TARGET_DIR}`"
-echo "hd status: `df -h | grep disk1 | awk '{print $4;}'`"
+echo "hd status: `df -H / | grep -v Capacity | awk '{print $4;}'`"
 echo "finished in ${SECONDS} seconds at `date`"
 
 exit 0
