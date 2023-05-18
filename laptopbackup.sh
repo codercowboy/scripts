@@ -264,7 +264,6 @@ if [ "${FLAG_BACKUP_USB}" = "true" ]; then
 	USB_BACKUP_DIR="${USB_DEST}/laptop_backup/${HOSTNAME}"
 	echo "[Starting USB Backup Step.]"
 	echo "Backing up to USB drive: ${USB_BACKUP_DIR}"
-	return
 
 	HOSTNAME=`hostname -s`
 	USB_BACKUP_DIR="${USB_DEST}/laptop_backup/${HOSTNAME}"
