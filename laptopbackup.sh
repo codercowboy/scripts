@@ -260,10 +260,14 @@ else
 fi #end blunx backup section
 
 if [ "${FLAG_BACKUP_USB}" = "true" ]; then
+	HOSTNAME=`hostname -s`
+	USB_BACKUP_DIR="${USB_DEST}/laptop_backup/${HOSTNAME}"
 	echo "[Starting USB Backup Step.]"
-	echo "Backing up to USB drive: ${USB_DEST}"
+	echo "Backing up to USB drive: ${USB_BACKUP_DIR}"
+	return
 
-	USB_BACKUP_DIR="${USB_DEST}/laptop_backup"
+	HOSTNAME=`hostname -s`
+	USB_BACKUP_DIR="${USB_DEST}/laptop_backup/${HOSTNAME}"
 	mkdir -p "${USB_BACKUP_DIR}"
 
 	run_backup_job "${USB_BACKUP_DIR}" ""

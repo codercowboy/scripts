@@ -205,7 +205,30 @@ function inspect_files {
 }
 export -f inspect_files
 
-alias yt_dlp_mp3='yt-dlp -x --audio-format mp3 --audio-quality 0 ${1}'
+YT_DLP_FILE_FORMAT="%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s"
+alias yt_dlp_mp3='yt-dlp -x --audio-format mp3 --audio-quality 0 -o "${YT_DLP_FILE_FORMAT}" ${1}'
+
+function move_files_here_fn {
+	if [ "${1}" = "" ]; then
+		echo "USAGE: move_files_here [source directory]"
+		echo "  source directory is directory to find files in"
+		echo "  files will be moved to current working directory"
+		return
+	fi
+
+	OLD_IFS=${IFS}
+	IFS=$'\n'
+	FILES=`find "${1}" -type f | sort`
+	FILE_COUNT=`echo "${FILES}" | wc -l`
+	echo "Moving ${FILE_COUNT} files to target directory `pwd -P`"
+	for FILE in ${FILES}; do	
+		echo "Moving: ${FILE}"	
+		mv "${FILE}" .
+	done
+	IFS=${OLD_IFS}
+}
+
+alias move_files_here='move_files_here_fn ${1}'
 
 ######################
 # VARIOUS OSX TRICKS #
@@ -242,7 +265,7 @@ export -f terminal_tab_execute
 function thin_local_snapshots() {
 	echo "Looking for local time machine backups to remove."
 	REMOVAL_COUNT=0
-	for SNAPSHOT in `tmutil listlocalsnapshots /`; do
+	for SNAPSHOT in `tmutil listlocalsnapshots / | grep -v "Snapshots for disk"`; do
 		SNAPSHOT_DATE=`echo "${SNAPSHOT}" | sed 's/com.apple.TimeMachine.//'`
 		echo "Removing snapshot '${SNAPSHOT}', date: ${SNAPSHOT_DATE}"
 		tmutil deletelocalsnapshots ${SNAPSHOT_DATE}
@@ -405,7 +428,8 @@ function chrome_local_dev {
 }
 export -f chrome_local_dev
 
-alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.16.jdk/Contents/Home'
+#alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.16.jdk/Contents/Home'
+alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/opt/homebrew/Cellar/openjdk@11/11.0.19'
 alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_291.jdk/Contents/Home'
 
 usejdk11
