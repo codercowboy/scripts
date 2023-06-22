@@ -61,7 +61,6 @@ export CODE=${HOME}/Documents/code
 export TOOLS=${HOME}/Documents/code/tools
 
 alias code='cd ${CODE}'
-alias tools='cd ${TOOLS}'
 
 #################
 # SSH SHORTCUTS #
@@ -429,7 +428,8 @@ function chrome_local_dev {
 export -f chrome_local_dev
 
 #alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.16.jdk/Contents/Home'
-alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/opt/homebrew/Cellar/openjdk@11/11.0.19'
+#alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/opt/homebrew/Cellar/openjdk@11/11.0.19'
+alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Users/jason/Documents/code/tools/jdk-11.0.18.jdk/Contents/Home'
 alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_291.jdk/Contents/Home'
 
 usejdk11
