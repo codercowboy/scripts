@@ -50,69 +50,201 @@ function print_usage()
 	echo "rn.sh - file renaming utilities"
 	echo
 	echo "USAGE"
-	echo "  rn.sh OPERATION ARGUMENT PATH"
+	echo "  rn.sh OPERATION ARGUMENT(S) PATH"
 	echo
 	echo "ARGUMENTS"
-	echo "  OPERATION - one of: prefix, suffix"
-	echo "  ARGUMENT - the prefix or suffix to add (before file extension)"
+	echo "  OPERATION - one of: prefix, suffix, fromfile"
+	echo "  ARGUMENTS"
+	echo "    'prefix' mode: the prefix to add to the filename"
+	echo "    'suffix' mode: the suffix to add to the filename (before file extension)"
+	echo "    'fromfile' mode: "
+	echo "       first arg: the file to read filenames from"
+	echo "       second (optional) arg: file extension to consider for renaming"
 	echo "  PATH - the path to files to check"
 	echo
 	echo "NOTES"
-	echo "  Files will be recursively renamed in all subfolders."
+	echo "  suffix/prefix mode: Files will be recursively renamed in all subfolders."
+	echo
+	echo "  fromfile mode: Files will be renamed in order of alphabetical sorting of original filenames"
 	echo
 	echo
 	echo "  ERROR: $1"
 	exit 1
 }
 
+if [ -z "${1}" -o -z "${2}" -o -z "${3}" ]; then
+	print_usage "Invalid arguments specified."
+fi
+
 OPERATION="${1}"
 ARGUMENT="${2}"
 FILE_PATH="${3}"
-
-if [ -z "${1}" -o -z "${2}" -o -z "${3}" ]; then
-	print_usage "Invalid arguments specified."
-elif [ "${OPERATION}" != "prefix" -a "${OPERATION}" != "suffix" ]; then 
-	print_usage "Invalid operation specified: ${OPERATION}"
-elif [ ! -d "${FILE_PATH}" ]; then
-	print_usage "${FILE_PATH} is not a directory."
-fi
-
-BASE_PATH="${FILE_PATH%*/}/" #this will put a / on the end of the path if there isnt one already
+BASE_PATH="${FILE_PATH%*/}" #this will put a / on the end of the path if there isnt one already
 
 #
 # thanks to http://www.vasudevaservice.com/documentation/how-to/converting_dos_and_unix_text_files
 # for help w/ dos2unix to TR convert tip
 #
 
-FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
+function run_prefix_or_suffix() {
+	#make for's argument seperator newline only
+	IFS=$'\n'
 
-#make for's argument seperator newline only
-IFS=$'\n'
-
-for FILE in ${FILES}; do
-	# echo "current file: ${FILE}"
-
-	ORIGINAL_BASENAME=`basename "$FILE"`
-	ORIGINAL_DIRNAME=`dirname "${FILE}"`
-	# file/ extenstion extraction examples: https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
-	FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah
-	FILE_EXTENSION="${ORIGINAL_BASENAME#*.}" # example blah.tar.gz -> tar.gz
-
-	# echo "name: ${FILE_WITHOUT_EXTENSION}, extension: ${FILE_EXTENSION}"	
-
-	if [ "${OPERATION}" = "prefix" ]; then
-		NEW_FILE="${BASE_PATH}${ARGUMENT}${ORIGINAL_BASENAME}"
-	elif [ "${OPERATION}" = "suffix" ]; then
-		NEW_FILE="${BASE_PATH}${FILE_WITHOUT_EXTENSION}${ARGUMENT}.${FILE_EXTENSION}"
+	if [ ! -d "${FILE_PATH}" ]; then
+		print_usage "${FILE_PATH} is not a directory."
 	fi
 
-	if [ -e "${NEW_FILE}" ]; then
-		echo "ERROR: target file already exists, not renaming: ${NEW_FILE}"				
+	FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
+	for FILE in ${FILES}; do
+		# echo "current file: ${FILE}"
+
+		ORIGINAL_BASENAME=`basename "$FILE"`
+		ORIGINAL_DIRNAME=`dirname "${FILE}"`
+		# file/ extenstion extraction examples: https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
+		FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah
+		FILE_EXTENSION="${ORIGINAL_BASENAME#*.}" # example blah.tar.gz -> tar.gz
+
+		# echo "name: ${FILE_WITHOUT_EXTENSION}, extension: ${FILE_EXTENSION}"	
+
+		if [ "${OPERATION}" = "prefix" ]; then
+			NEW_FILE="${BASE_PATH}/${ARGUMENT}${ORIGINAL_BASENAME}"
+		elif [ "${OPERATION}" = "suffix" ]; then
+			NEW_FILE="${BASE_PATH}/${FILE_WITHOUT_EXTENSION}${ARGUMENT}.${FILE_EXTENSION}"
+		fi
+
+		if [ -e "${NEW_FILE}" ]; then
+			echo "ERROR: target file already exists, not renaming: ${NEW_FILE}"				
+		else
+			echo "  Renaming File: ${FILE}"
+			echo "             to: ${NEW_FILE}"
+			echo
+
+			mv "${FILE}" "${ORIGINAL_DIRNAME}/${NEW_FILE}"
+		fi
+	done
+}
+
+NEW_FILE_NAMES=()
+
+# arg 1 is file to read file names from
+function get_filenames() {
+	FILE_NAMES_FILE="${1}"
+	echo "Reading file names from: ${FILE_NAMES_FILE}"
+	if [ ! -e "${FILE_NAMES_FILE}" ]; then
+		echo "File does not exist: ${FILE_NAMES_FILE}"
+		exit 0
+	fi	
+	LINES=`cat "${FILE_NAMES_FILE}"`
+	
+	#make for's argument seperator newline only
+	IFS=$'\n'
+	for LINE in ${LINES}; do
+		# remove \r char at end of line if it's there
+		LINE=`echo "${LINE}" | sed -e 's/\r$//g'`
+		# Remove the spaces from the line front
+		LINE=`echo "${LINE}" | sed -e 's/^[[:blank:]]*//g'`
+		# remove spaces from end of line
+		LINE=`echo "${LINE}" | sed -e 's/[[:blank:]]*$//g'`
+
+		# echo "Processing line: '${LINE}'"
+
+		FIRST_LINE_CHAR=`echo "${LINE}" | head -c 1`
+				
+		if [ "${LINE}" = "" ]; then
+			# echo "Line is empty, skipping: ${LINE}"
+			continue
+		elif [ "${FIRST_LINE_CHAR}" = "#" ]; then
+			# echo "Line starts with '#', skipping: ${LINE}"
+			continue
+		elif [ "${FIRST_LINE_CHAR}" = "." ]; then
+			# echo "Line starts with '.', skipping: ${LINE}"
+			continue
+		fi
+
+		# echo "Parsed filename '${LINE}'"
+		NEW_FILE_NAMES+=( $LINE )
+	done	
+}
+
+function run_from_file() {
+	#make for's argument seperator newline only
+	IFS=$'\n'
+
+	FILE_EXTENSION_FILTER=""
+	if [ ! -z "${4}" ]; then 
+		FILE_EXTENSION_FILTER="${3}"
+		echo "Files with the following extension will be renamed: ${FILE_EXTENSION_FILTER}"
+		FILE_PATH="${4}"
+		BASE_PATH="${FILE_PATH%*/}" #this will put a / on the end of the path if there isnt one already
+	else 
+		echo "File extension matching is disabled."
+	fi
+
+	if [ ! -d "${FILE_PATH}" ]; then
+		print_usage "${FILE_PATH} is not a directory."
 	else
-		echo "  Renaming File: ${FILE}"
-		echo "             to: ${NEW_FILE}"
-		echo
+		echo "Processing files in path: ${FILE_PATH}"
+	fi	
 
-		mv "${FILE}" "${ORIGINAL_DIRNAME}/${NEW_FILE}"
+	FILE_NAMES_FILE="${ARGUMENT}"
+	get_filenames "${FILE_NAMES_FILE}"
+	# echo "got names:"
+	# declare -p NEW_FILE_NAMES # prints array details
+	NEW_FILE_NAMES_COUNT=${#NEW_FILE_NAMES[@]}
+	NEW_FILE_NAMES_INDEX=0
+
+	if [ "0" = "${NEW_FILE_NAMES_COUNT}" ]; then
+		echo "No file names were found in file. Exiting."
+		exit 1
 	fi
-done
+
+	FILE_LIST_FILE_BASENAME=`basename "${FILE_NAMES_FILE}"`
+
+	FILES=`find "${FILE_PATH}" -type f -d 1 | sort`
+
+	for FILE in ${FILES}; do
+		OLD_BASENAME=`basename "${FILE}"`
+		OLD_FILE_EXTENSION=${OLD_BASENAME##*.}
+
+		echo "Current file: '${OLD_BASENAME}'"
+
+		if [ "${FILE_LIST_FILE_BASENAME}" = "${OLD_BASENAME}" ]; then
+			echo "File is named same as list file, skipping: '${OLD_BASENAME}'"
+			continue
+		elif [ ! -z "${FILE_EXTENSION_FILTER}" -a "${FILE_EXTENSION_FILTER}" != "${OLD_FILE_EXTENSION}" ]; then
+			echo "File's extension does not match '${FILE_EXTENSION_FILTER}': '${OLD_BASENAME}', skipping." 
+			continue
+		fi
+
+		NEW_FILE_NAME="${NEW_FILE_NAMES[$NEW_FILE_NAMES_INDEX]}"
+
+		ORIGINAL_DIRNAME=`dirname "${FILE}"`
+		NEW_FILE="${ORIGINAL_DIRNAME}/${NEW_FILE_NAME}"
+
+		if [ -e "${NEW_FILE}" ]; then
+			echo "ERROR: target file already exists, not renaming: ${NEW_FILE}"				
+		else
+			echo "  Renaming File: '${FILE}'"
+			echo "             to: '${NEW_FILE}'"
+			echo
+
+			mv "${FILE}" "${NEW_FILE}"
+		fi
+
+		NEW_FILE_NAMES_INDEX=$((NEW_FILE_NAMES_INDEX+1))
+		if [ "${NEW_FILE_NAMES_INDEX}" = "${NEW_FILE_NAMES_COUNT}" ]; then
+			echo "No further file names exist, quitting"
+			break
+		fi
+	done
+}
+
+if [ "${OPERATION}" = "prefix" -o "${OPERATION}" = "suffix" ]; then
+	run_prefix_or_suffix
+elif [ "${OPERATION}" = "fromfile" ]; then
+	run_from_file $@
+else 
+	echo "Unsupported mode: ${OPERATION}"
+fi
+
+

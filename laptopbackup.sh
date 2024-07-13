@@ -56,10 +56,11 @@ fi
 
 MY_USER_HOME=/Users/${MY_USER}
 
-SERVER_RSYNC_TARGET_DIR=${MY_USER}@${MY_SERVER}:/external/backup/laptop_backup
-LOCAL_BACKUP_DIR=${MY_USER_HOME}/Documents/backup
-LOCAL_RSYNC_TARGET_DIR=${LOCAL_BACKUP_DIR}/laptop_backup
-mkdir -p ${LOCAL_RSYNC_TARGET_DIR}
+SERVER_RSYNC_TARGET_DIR="${MY_USER}@${MY_SERVER}:/external/Backup/Laptop Backup"
+LOCAL_BACKUP_DIR="${MY_USER_HOME}/Documents/Backup"
+LOCAL_RSYNC_TARGET_DIR="${LOCAL_BACKUP_DIR}/Laptop Backup"
+LOCAL_MUSIC_FOLDER="${MY_USER_HOME}/Documents/not time machine/Music"
+mkdir -p "${LOCAL_RSYNC_TARGET_DIR}"
 
 FLAG_BACKUP_LOCAL="false"
 FLAG_BACKUP_CLEAN="false"
@@ -112,7 +113,6 @@ function run_backup_job() {
 	echo "Backing up to: ${TARGET_DIR}"
 	mkdir -p "${TARGET_DIR}"
 	
-	md5tool.sh CREATE "${LOCAL_BACKUP_DIR}/move_to_server/"
 	my_rsync ${RSYNC_ARGS} "${LOCAL_BACKUP_DIR}/" "${TARGET_DIR}/backup/"
 
 	md5tool.sh CREATE "${MY_USER_HOME}/Pictures/"
@@ -134,7 +134,33 @@ function run_backup_job() {
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Library/Application Support/MobileSync/" "${TARGET_DIR}/MobileSync/"
 
 	#md5tool.sh CREATE "/Applications/Wine"
-	#my_rsync ${RSYNC_ARGS} "/Applications/Wine" "${TARGET_DIR}/wine/"		
+	#my_rsync ${RSYNC_ARGS} "/Applications/Wine" "${TARGET_DIR}/wine/"			
+}
+
+# arg 1 is target drive
+function backup_music() {
+	TARGET_MUSIC_FOLDER=""
+
+	if [ ! -e "${LOCAL_MUSIC_FOLDER}" ]; then
+		echo "Not backing up music, can't find expected local music dir: ${LOCAL_MUSIC_FOLDER}"
+		return
+	fi
+
+	if [ -e "${1}/Music" ]; then
+		TARGET_MUSIC_FOLDER="${1}/Music"
+	elif [ -e "${1}/Garbage/Music" ]; then
+		TARGET_MUSIC_FOLDER="${1}/Garbage/Music"
+	else
+		echo "Not backing up music, can't find target music folder."
+		return
+	fi
+
+	echo "[Backing up music]"
+	echo "  Source music Dir: ${LOCAL_MUSIC_FOLDER}"
+	echo "  Target music dir: ${TARGET_MUSIC_FOLDER}"	
+
+	my_rsync "${LOCAL_MUSIC_FOLDER}/" "${TARGET_MUSIC_FOLDER}/"
+	echo "[Finished Backing up music]"
 }
 
 if test ${FLAG_BACKUP_USB} = "true"; then
@@ -218,8 +244,9 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	rm ${MISC_FOLDER}/automator_services.zip
 	zip -r ${MISC_FOLDER}/automator_services.zip "${MY_USER_HOME}/Library/Services/"
 	brew leaves > ${MISC_FOLDER}/brewlist.txt
+	defaults read /Library/Preferences/com.apple.TimeMachine SkipPaths > ${MISC_FOLDER}/timemachine_excludes.txt
 	find /Applications -maxdepth 1 | sort > "${MISC_FOLDER}/apps.txt"
-	date > ${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt
+	date > "${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt"
 
 	echo "backing up code"
 	my_rsync "${MY_USER_HOME}/Documents/code" "${LOCAL_RSYNC_TARGET_DIR}/"
@@ -261,15 +288,15 @@ fi #end blunx backup section
 
 if [ "${FLAG_BACKUP_USB}" = "true" ]; then
 	HOSTNAME=`hostname -s`
-	USB_BACKUP_DIR="${USB_DEST}/laptop_backup/${HOSTNAME}"
+	USB_BACKUP_DIR="${USB_DEST}/Laptop Backup/${HOSTNAME}"
 	echo "[Starting USB Backup Step.]"
 	echo "Backing up to USB drive: ${USB_BACKUP_DIR}"
 
-	HOSTNAME=`hostname -s`
-	USB_BACKUP_DIR="${USB_DEST}/laptop_backup/${HOSTNAME}"
 	mkdir -p "${USB_BACKUP_DIR}"
 
 	run_backup_job "${USB_BACKUP_DIR}" ""
+
+	backup_music "${USB_DEST}"
 	
 	md5tool.sh CHECKALL "${USB_BACKUP_DIR}/"
 	echo "[Finished USB Backup Step.]"
@@ -278,10 +305,10 @@ else
 fi #end usb backup section
 
 echo "fixing permissions"
-chmod -R 700 ${LOCAL_RSYNC_TARGET_DIR}
-chown -R ${MY_USER} ${LOCAL_RSYNC_TARGET_DIR}
+chmod -R 700 "${LOCAL_RSYNC_TARGET_DIR}"
+chown -R ${MY_USER} "${LOCAL_RSYNC_TARGET_DIR}"
 
-echo "backup size: `du -h -d 0 ${LOCAL_RSYNC_TARGET_DIR}`"
+echo "backup size: `du -h -d 0 '${LOCAL_RSYNC_TARGET_DIR}'`"
 echo "hd status: `df -H / | grep -v Capacity | awk '{print $4;}'`"
 echo "finished in ${SECONDS} seconds at `date`"
 

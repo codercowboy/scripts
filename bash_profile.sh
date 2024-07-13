@@ -265,7 +265,7 @@ function thin_local_snapshots() {
 	echo "Looking for local time machine backups to remove."
 	REMOVAL_COUNT=0
 	for SNAPSHOT in `tmutil listlocalsnapshots / | grep -v "Snapshots for disk"`; do
-		SNAPSHOT_DATE=`echo "${SNAPSHOT}" | sed 's/com.apple.TimeMachine.//'`
+		SNAPSHOT_DATE=`echo "${SNAPSHOT}" | sed 's/com.apple.TimeMachine.//' | sed 's/.local//'`
 		echo "Removing snapshot '${SNAPSHOT}', date: ${SNAPSHOT_DATE}"
 		tmutil deletelocalsnapshots ${SNAPSHOT_DATE}
 		REMOVAL_COUNT=$((REMOVAL_COUNT+1))
@@ -427,10 +427,8 @@ function chrome_local_dev {
 }
 export -f chrome_local_dev
 
-#alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-11.0.16.jdk/Contents/Home'
-#alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/opt/homebrew/Cellar/openjdk@11/11.0.19'
-alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=/Users/jason/Documents/code/tools/jdk-11.0.18.jdk/Contents/Home'
-alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.8.0_291.jdk/Contents/Home'
+alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=${TOOLS}/jdk-11.0.18.jdk/Contents/Home'
+alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=${TOOLS}/jdk1.8.0_411/Contents/Home'
 
 usejdk11
 
