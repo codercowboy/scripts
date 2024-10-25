@@ -38,15 +38,7 @@ function terminal_tab_execute {
 export -f terminal_tab_execute
 
 function thin_local_snapshots {
-	echo "Looking for local time machine backups to remove."
-	REMOVAL_COUNT=0
-	for SNAPSHOT in `tmutil listlocalsnapshots / | grep -v "Snapshots for disk"`; do
-		SNAPSHOT_DATE=`echo "${SNAPSHOT}" | sed 's/com.apple.TimeMachine.//' | sed 's/.local//'`
-		echo "Removing snapshot '${SNAPSHOT}', date: ${SNAPSHOT_DATE}"
-		tmutil deletelocalsnapshots ${SNAPSHOT_DATE}
-		REMOVAL_COUNT=$((REMOVAL_COUNT+1))
-	done
-	echo "Finished removing time machine backups, removed ${REMOVAL_COUNT} backups."
+	tmutil deletelocalsnapshots /	
 }
 export -f thin_local_snapshots
 

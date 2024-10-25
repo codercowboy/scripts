@@ -12,6 +12,9 @@
 #
 # UPDATES:
 #
+# 2024/08/01
+#  - add 'trim' mode
+#
 # 2020/12/20
 #  - Initial version
 #
@@ -52,8 +55,20 @@ function print_usage()
 	echo "USAGE"
 	echo "  rn.sh OPERATION ARGUMENT(S) PATH"
 	echo
+	echo "EXAMPLE USAGES"
+	echo "  rn.sh prefix \"my prefix\" ."
+	echo "        ^ adds 'my prefix' to the front of each file name"
+	echo "  rn.sh suffix final ."
+	echo "        ^ adds 'final' to the end of each file name"
+	echo "  rn.sh trim 10 ."
+	echo "        ^ trims each filename to be the first ten characters"
+	echo "  rn.sh fromfile filenames.txt mp3 ."
+	echo "        ^ renames each mp3 file in the directory according to the lines in filenames.txt"
+	echo "  rn.sh remove \"some string\" ."
+	echo "        ^ removes 'some string' from each file name"
+	echo
 	echo "ARGUMENTS"
-	echo "  OPERATION - one of: prefix, suffix, fromfile"
+	echo "  OPERATION - one of: prefix, suffix, trim, fromfile"
 	echo "  ARGUMENTS"
 	echo "    'prefix' mode: the prefix to add to the filename"
 	echo "    'suffix' mode: the suffix to add to the filename (before file extension)"
@@ -86,7 +101,7 @@ BASE_PATH="${FILE_PATH%*/}" #this will put a / on the end of the path if there i
 # for help w/ dos2unix to TR convert tip
 #
 
-function run_prefix_or_suffix() {
+function run_prefix_or_suffix {
 	#make for's argument seperator newline only
 	IFS=$'\n'
 
@@ -127,7 +142,7 @@ function run_prefix_or_suffix() {
 NEW_FILE_NAMES=()
 
 # arg 1 is file to read file names from
-function get_filenames() {
+function get_filenames {
 	FILE_NAMES_FILE="${1}"
 	echo "Reading file names from: ${FILE_NAMES_FILE}"
 	if [ ! -e "${FILE_NAMES_FILE}" ]; then
@@ -166,7 +181,7 @@ function get_filenames() {
 	done	
 }
 
-function run_from_file() {
+function run_from_file {
 	#make for's argument seperator newline only
 	IFS=$'\n'
 
@@ -239,12 +254,96 @@ function run_from_file() {
 	done
 }
 
+function run_trim {
+	#make for's argument seperator newline only
+	IFS=$'\n'
+
+	if [ ! -d "${FILE_PATH}" ]; then
+		print_usage "${FILE_PATH} is not a directory."
+	fi
+
+	# test to make sure character-count argument makes sense (is an integer)
+	echo "testing argument" | head -c "${ARGUMENT}" 2>/dev/null
+	if [ ! "0" = "${?}" ]; then
+		echo "Invalid trim character count: ${ARGUMENT}"
+		exit 1
+	fi
+
+	FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
+	for FILE in ${FILES}; do
+		# echo "current file: ${FILE}"
+
+		ORIGINAL_BASENAME=`basename "$FILE"`
+		ORIGINAL_DIRNAME=`dirname "${FILE}"`
+		# file/ extenstion extraction examples: https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
+		FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah
+		FILE_EXTENSION="${ORIGINAL_BASENAME#*.}" # example blah.tar.gz -> tar.gz
+
+		# echo "name: ${FILE_WITHOUT_EXTENSION}, extension: ${FILE_EXTENSION}"	
+
+		TRIMMED_FILE_WITHOUT_EXTENSION=`echo "${FILE_WITHOUT_EXTENSION}" | head -c ${ARGUMENT}`
+		NEW_FILE="${BASE_PATH}/${TRIMMED_FILE_WITHOUT_EXTENSION}.${FILE_EXTENSION}"
+
+		if [ "${TRIMMED_FILE_WITHOUT_EXTENSION}" = "${FILE_WITHOUT_EXTENSION}" ]; then
+			echo "File's name is less than ${ARGUMENT} characters already: ${NEW_FILE}"
+		elif [ -e "${NEW_FILE}" ]; then
+			echo "ERROR: target file already exists, not renaming: ${NEW_FILE}"				
+		else
+			echo "  Renaming File: ${FILE}"
+			echo "             to: ${NEW_FILE}"
+			echo
+
+			mv "${FILE}" "${ORIGINAL_DIRNAME}/${NEW_FILE}"
+		fi
+	done
+}
+
+# arg 1 = string to remove from filenames
+function run_remove {
+	#make for's argument seperator newline only
+	IFS=$'\n'
+
+	SEARCH_STRING="${1}"
+
+	FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
+	for FILE in ${FILES}; do
+		# echo "current file: ${FILE}"
+
+		ORIGINAL_BASENAME=`basename "$FILE"`
+		ORIGINAL_DIRNAME=`dirname "${FILE}"`
+
+		# string replace: https://stackoverflow.com/questions/13210880/replace-one-substring-for-another-string-in-shell-script
+		NEW_BASE_NAME="${ORIGINAL_BASENAME//$SEARCH_STRING/}"
+
+		NEW_FILE="${BASE_PATH}/${NEW_BASE_NAME}"
+
+		if [ "${ORIGINAL_BASENAME}" = "${NEW_BASE_NAME}" ]; then
+			echo "File doesn't contain: '${SEARCH_STRING}': ${NEW_FILE}"
+		elif [ -e "${NEW_FILE}" ]; then
+			echo "ERROR: target file already exists, not renaming: ${NEW_FILE}"				
+		else			
+			echo "  Renaming File: ${FILE}"
+			echo "             to: ${NEW_FILE}"
+			echo
+
+			mv "${FILE}" "${ORIGINAL_DIRNAME}/${NEW_FILE}"
+		fi
+	done
+}
+
 if [ "${OPERATION}" = "prefix" -o "${OPERATION}" = "suffix" ]; then
 	run_prefix_or_suffix
+elif [ "${OPERATION}" = "trim" ]; then
+	run_trim
 elif [ "${OPERATION}" = "fromfile" ]; then
 	run_from_file $@
+elif [ "${OPERATION}" = "remove" ]; then
+	run_remove "${2}"
 else 
 	echo "Unsupported mode: ${OPERATION}"
+	exit 1
 fi
+
+exit 0
 
 

@@ -148,8 +148,8 @@ function backup_music() {
 
 	if [ -e "${1}/Music" ]; then
 		TARGET_MUSIC_FOLDER="${1}/Music"
-	elif [ -e "${1}/Garbage/Music" ]; then
-		TARGET_MUSIC_FOLDER="${1}/Garbage/Music"
+	elif [ -e "${1}/Archive/Garbage/Music" ]; then
+		TARGET_MUSIC_FOLDER="${1}/Archive/Garbage/Music"
 	else
 		echo "Not backing up music, can't find target music folder."
 		return
@@ -308,8 +308,9 @@ echo "fixing permissions"
 chmod -R 700 "${LOCAL_RSYNC_TARGET_DIR}"
 chown -R ${MY_USER} "${LOCAL_RSYNC_TARGET_DIR}"
 
-echo "backup size: `du -h -d 0 '${LOCAL_RSYNC_TARGET_DIR}'`"
-echo "hd status: `df -H / | grep -v Capacity | awk '{print $4;}'`"
+BACKUP_SIZE=`du -h -d 0 "${LOCAL_RSYNC_TARGET_DIR}"`
+echo "local backup size: ${BACKUP_SIZE}"
+echo "local hd status: `df -H / | grep -v Capacity | awk '{print $4;}'`"
 echo "finished in ${SECONDS} seconds at `date`"
 
 exit 0

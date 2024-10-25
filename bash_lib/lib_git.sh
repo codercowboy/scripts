@@ -54,7 +54,7 @@ function vpn_disconnect {
 alias gitlog='git log --pretty=format:"%h - %an, %ar : %s"'
 
 alias git_pull_force_overwrite='git reset --hard @{upstream}'
-alias git_log_for_merge="git log --date-order --reverse --no-merges --abbrev-commit --date=short --format=\"# %h - %s [%cn :: %cI]%n%n%b\" ${@}"
+alias git_log_for_merge="git log --date-order --reverse --no-merges --abbrev-commit --date=short --format=\"%h - %s [%cn :: %cI]%n%n%b\" ${@}"
 alias git_get_branch="git branch --show-current"
 alias git_list_remote_branches="git branch -r"
 
@@ -194,13 +194,15 @@ function prep_commit_fn {
 	cd "${CLEAN_DIR}" && git checkout main && git add * && git stash && git_pull_force_overwrite 
 	cd "${CLEAN_DIR}" && git checkout 5.4.x-maint && git add * && git stash && git_pull_force_overwrite 
 	cd "${CLEAN_DIR}" && git checkout 5.6.x-maint && git add * && git stash && git_pull_force_overwrite 
+	cd "${CLEAN_DIR}" && git checkout 5.8.x-maint && git add * && git stash && git_pull_force_overwrite 
+	cd "${CLEAN_DIR}" && git checkout 5.10.x-maint && git add * && git stash && git_pull_force_overwrite 
 
 	echo "Creating commit dir: ${COMMIT_DIR}"
 	cp -r "${CLEAN_DIR}" "${COMMIT_DIR}"
 
 	TMP_BRANCH=`cd "${SOURCE_DIR}" && git branch --show-current`
 	if [ -z "${TMP_BRANCH}" ]; then
-		TMP_BRANCH="5.6.x-maint"
+		TMP_BRANCH="5.8.x-maint"
 	fi
 	echo "Checking out branch: ${TMP_BRANCH}"
 	cd "${COMMIT_DIR}" && git checkout "${TMP_BRANCH}"
@@ -252,9 +254,13 @@ function git_backup {
 	echo "[Backing up: ${1} to ${HYTE_BACKUP_DIR}/${ZIP_NAME}]"
 	
 	echo "[Cleaning code]"
-	cd "${1}" && clean_this
+	for FILE in `find ${1} -type d -name target`; do
+		echo "Removing: ${FILE}"
+		rm -Rf "${FILE}"		
+	done
+
 	echo "[Zipping]"
-	cd .. && zip -r "${HYTE_BACKUP_DIR}/${ZIP_NAME}" "${1}"
+	zip -r "${HYTE_BACKUP_DIR}/${ZIP_NAME}" "${1}"
 	
 	echo "[Finished. Backed up to ${HYTE_BACKUP_DIR}/${ZIP_NAME}]"
 
@@ -309,7 +315,7 @@ function git_remove_remote_branch {
 	echo "Remove remote branch ${BRANCH_TO_REMOVE}? ('YES' to select, enter to skip)"
 	echo -n "> "
 	read ANSWER
-	if [ "${ANSWER}" = "YES" ]; then
+	if [ "${ANSWER}" != "YES" ]; then
 		echo "Not removing remote branch. (you didn't type 'YES')"
 		return 1
 	fi
