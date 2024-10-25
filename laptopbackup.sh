@@ -107,8 +107,8 @@ function my_rsync() {
 IFS=$'\n'
 
 function run_backup_job() {
-	TARGET_DIR="${1}"
-	RSYNC_ARGS="${2}"
+	local TARGET_DIR="${1}"
+	local RSYNC_ARGS="${2}"
 
 	echo "Backing up to: ${TARGET_DIR}"
 	mkdir -p "${TARGET_DIR}"
@@ -124,11 +124,13 @@ function run_backup_job() {
 	md5tool.sh CREATE "${MY_USER_HOME}/Movies"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Movies/" "${TARGET_DIR}/Movies/"			
 
-	md5tool.sh CREATE "${MY_USER_HOME}/Dropbox"
-	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Dropbox/" "${TARGET_DIR}/Dropbox/"			
+	DROPBOX_DIR="${MY_USER_HOME}/Library/CloudStorage/Dropbox"
+	# md5sum hangs in magic dropbox folder as of 2026-03-07
+	# md5tool.sh CREATE "${DROPBOX_DIR}"
+	my_rsync ${RSYNC_ARGS} "${DROPBOX_DIR}/" "${TARGET_DIR}/Dropbox/"			
 
-	md5tool.sh CREATE "${MY_USER_HOME}/Documents/win98vm"
-	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Documents/win98vm/" "${TARGET_DIR}/win98vm/"		
+	md5tool.sh CREATE "${MY_USER_HOME}/Documents/win2k-86box"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Documents/win2k-86box/" "${TARGET_DIR}/win2k-86box/"		
 
 	md5tool.sh CREATE "${MY_USER_HOME}/Library/Application Support/MobileSync"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Library/Application Support/MobileSync/" "${TARGET_DIR}/MobileSync/"
@@ -139,7 +141,7 @@ function run_backup_job() {
 
 # arg 1 is target drive
 function backup_music() {
-	TARGET_MUSIC_FOLDER=""
+	local TARGET_MUSIC_FOLDER=""
 
 	if [ ! -e "${LOCAL_MUSIC_FOLDER}" ]; then
 		echo "Not backing up music, can't find expected local music dir: ${LOCAL_MUSIC_FOLDER}"
@@ -148,8 +150,8 @@ function backup_music() {
 
 	if [ -e "${1}/Music" ]; then
 		TARGET_MUSIC_FOLDER="${1}/Music"
-	elif [ -e "${1}/Garbage/Music" ]; then
-		TARGET_MUSIC_FOLDER="${1}/Garbage/Music"
+	elif [ -e "${1}/Archive/Garbage/Music" ]; then
+		TARGET_MUSIC_FOLDER="${1}/Archive/Garbage/Music"
 	else
 		echo "Not backing up music, can't find target music folder."
 		return
@@ -190,27 +192,32 @@ function remove_file() {
 	if [ -e "${1}" ]; then
 		echo "Removing file: ${1}"
 		rm -Rf "${1}"
+	else
+		echo "Not removing file that does not exist: ${1}"
 	fi
 }
 
 if [ "${FLAG_BACKUP_CLEAN}" = "true" ]; then
 	echo "[Starting Clean Backup Step.]"
 
-	for FILE in `find ${CODE} -type d -name target`; do
+	echo "+++ Removing 'target' directories from code"
+	for FILE in `find "${CODE}" -type d -name target`; do
 		echo "Removing: ${FILE}"
 		rm -Rf "${FILE}"		
 	done
 
-	for FILE in `find ${CODE} -type d -name node_modules -d 3`; do
+	echo "+++ Removing 'node_modules' directories from code"
+	for FILE in `find "${CODE}" -type d -name node_modules -d 3`; do
 		echo "Removing: ${FILE}"
 		rm -Rf "${FILE}"
 	done
 
+	echo "+++ Removing misc hyte directories from code"
 	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data.old"
 	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/log"
-	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/cfg/b"
-	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/sched"
-	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/msg"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/src/test/resources/hyte-boot/data/hyte/v5/cfg/b"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/src/test/resources/hyte-boot/data/hyte/v5/sched"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/src/test/resources/hyte-boot/data/hyte/v5/msg"
 	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/etc.old"
 	
 	echo "[Finished Clean Backup Step.]"
@@ -222,29 +229,32 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	echo "backing up misc"
 	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/System/"
 	MISC_FOLDER="${LOCAL_RSYNC_TARGET_DIR}/System/misc"
-	rm -Rvf ${MISC_FOLDER}
-	mkdir -p ${MISC_FOLDER}
+	rm -Rvf "${MISC_FOLDER}"
+	mkdir -p "${MISC_FOLDER}"
 
-	cp /etc/hosts ${MISC_FOLDER}/
-	cp /etc/profile ${MISC_FOLDER}/
-	cp /etc/paths ${MISC_FOLDER}/
-	cp ${MY_USER_HOME}/.bash_profile ${MISC_FOLDER}/
-	cp ${MY_USER_HOME}/.bash_logout ${MISC_FOLDER}/
-	cp ${MY_USER_HOME}/setupenv.sh ${MISC_FOLDER}/
-	cp ${MY_USER_HOME}/.gitconfig ${MISC_FOLDER}/
-	cp -r ${CODE}/tools/git ${MISC_FOLDER}/
-	cp -r ${MY_USER_HOME}/.ssh ${MISC_FOLDER}/
-	cp -r ${MY_USER_HOME}/.vnc ${MISC_FOLDER}/
-	cp -r ${MY_USER_HOME}/.subversion ${MISC_FOLDER}/
-	cp -r ${MY_USER_HOME}/.config/filezilla ${MISC_FOLDER}/	
-	cp ${MY_USER_HOME}/.m2/settings.xml ${MISC_FOLDER}/maven.settings.xml
+	cp "/etc/hosts" "${MISC_FOLDER}/"
+	cp "/etc/profile" "${MISC_FOLDER}/"
+	cp "/etc/paths" "${MISC_FOLDER}/"
+	cp "${MY_USER_HOME}/.bash_profile" "${MISC_FOLDER}/"
+	cp "${MY_USER_HOME}/.bash_logout" "${MISC_FOLDER}/"
+	cp "${MY_USER_HOME}/setupenv.sh" "${MISC_FOLDER}/"
+	cp "${MY_USER_HOME}/.gitconfig" "${MISC_FOLDER}/"
+	cp -r "${CODE}/tools/git" "${MISC_FOLDER}/"
+	rm -Rf "${MISC_FOLDER}/.ssh"
+	md5tool.sh CREATE "${MY_USER_HOME}/.ssh"
+	cp -r "${MY_USER_HOME}/.ssh" "${MISC_FOLDER}/"
+	cp -r "${MY_USER_HOME}/.vnc" "${MISC_FOLDER}/"
+	cp -r "${MY_USER_HOME}/.subversion" "${MISC_FOLDER}/"
+	cp -r "${MY_USER_HOME}/.config/filezilla" "${MISC_FOLDER}/"	
+	cp "${MY_USER_HOME}/.m2/settings.xml" "${MISC_FOLDER}/maven.settings.xml"
+	cp "${MY_USER_HOME}/Library/Preferences"/DOSBox*Preferences "${MISC_FOLDER}/"	
 	
-	mkdir -p ${MISC_FOLDER}/sublimetext
+	mkdir -p "${MISC_FOLDER}/sublimetext"
 	cp -r "${MY_USER_HOME}/Library/Application Support/Sublime Text 3/Packages/User" "${MISC_FOLDER}/sublimetext"
-	rm ${MISC_FOLDER}/automator_services.zip
-	zip -r ${MISC_FOLDER}/automator_services.zip "${MY_USER_HOME}/Library/Services/"
-	brew leaves > ${MISC_FOLDER}/brewlist.txt
-	defaults read /Library/Preferences/com.apple.TimeMachine SkipPaths > ${MISC_FOLDER}/timemachine_excludes.txt
+	rm "${MISC_FOLDER}/automator_services.zip"
+	zip -r "${MISC_FOLDER}/automator_services.zip" "${MY_USER_HOME}/Library/Services/"
+	brew leaves > "${MISC_FOLDER}/brewlist.txt"
+	defaults read /Library/Preferences/com.apple.TimeMachine SkipPaths > "${MISC_FOLDER}/timemachine_excludes.txt"
 	find /Applications -maxdepth 1 | sort > "${MISC_FOLDER}/apps.txt"
 	date > "${LOCAL_RSYNC_TARGET_DIR}/backupdate.txt"
 
@@ -259,17 +269,26 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/voicememos/"
 	my_rsync "${MY_USER_HOME}/Library/Application Support/com.apple.voicememos/" "${LOCAL_RSYNC_TARGET_DIR}/System/voicememos/"	
 	my_rsync "${MY_USER_HOME}/Library/Fonts" "${LOCAL_RSYNC_TARGET_DIR}/System/"
+
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Garageband Track Settings/"
+	my_rsync "${MY_USER_HOME}/Music/Audio Music Apps/Patches" "${LOCAL_RSYNC_TARGET_DIR}/Garageband Track Settings/"
 	
 	echo "backing up downloads"
 	my_rsync "${MY_USER_HOME}/Downloads" "${LOCAL_RSYNC_TARGET_DIR}/"
 
 	echo "backing up games (minecraft, terraria, factorio)"
 	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Games/"
-	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots/" "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft/screenshots/"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves/" "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft/saves/"	
-	my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
-	my_rsync "${MY_USER_HOME}/Library/Application Support/factorio" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
+	if [ -e "${MY_USER_HOME}/Library/Application Support/minecraft/" ]; then
+		mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft"
+		my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/screenshots/" "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft/screenshots/"
+		my_rsync "${MY_USER_HOME}/Library/Application Support/minecraft/saves/" "${LOCAL_RSYNC_TARGET_DIR}/Games/Minecraft/saves/"	
+	fi
+	if [ -e "${MY_USER_HOME}/Library/Application Support/Terraria" ]; then
+		my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
+	fi
+	if [ -e "${MY_USER_HOME}/Library/Application Support/factorio" ]; then
+		my_rsync "${MY_USER_HOME}/Library/Application Support/factorio" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
+	fi
 
 	echo "Creating md5 in ${LOCAL_RSYNC_TARGET_DIR}"
 	md5tool.sh CREATE "${LOCAL_RSYNC_TARGET_DIR}"
@@ -308,8 +327,9 @@ echo "fixing permissions"
 chmod -R 700 "${LOCAL_RSYNC_TARGET_DIR}"
 chown -R ${MY_USER} "${LOCAL_RSYNC_TARGET_DIR}"
 
-echo "backup size: `du -h -d 0 '${LOCAL_RSYNC_TARGET_DIR}'`"
-echo "hd status: `df -H / | grep -v Capacity | awk '{print $4;}'`"
+BACKUP_SIZE=`du -h -d 0 "${LOCAL_RSYNC_TARGET_DIR}"`
+echo "local backup size: ${BACKUP_SIZE}"
+echo "local hd status: `df -H / | grep -v Capacity | awk '{print $4;}'`"
 echo "finished in ${SECONDS} seconds at `date`"
 
 exit 0

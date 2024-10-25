@@ -80,6 +80,7 @@ source "${MY_SCRIPTS_HOME}/bash_lib/lib_media.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_rsync.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_security.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_zip_helpers.sh"
+source "${MY_SCRIPTS_HOME}/bash_lib/lib_help.sh"
 
 ##############
 # MISC STUFF #

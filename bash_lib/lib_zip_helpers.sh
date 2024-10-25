@@ -19,19 +19,19 @@ function zip_process_each_file {
 		echo "\tThis will archive each file (or directory) in the given directory."
 		return
 	fi
-	OLD_IFS=${IFS}
+	local OLD_IFS=${IFS}
 	IFS=$'\n'
 	OLD_CWD=`pwd -P`
 	cd "${4}"
-	FILES=`find . -maxdepth 1 | sort`
+	local FILES=`find . -maxdepth 1 | sort`
 	for FILE in ${FILES}; do
 		if [ "." = "${FILE}" -o ".." = "${FILE}" ]; then
 			continue
 		fi
-		ORIGINAL_BASENAME=`basename "${FILE}"`
-		NEW_FILE="${ORIGINAL_BASENAME}.${3}"
+		local ORIGINAL_BASENAME=`basename "${FILE}"`
+		local NEW_FILE="${ORIGINAL_BASENAME}.${3}"
 		echo "${2} ${FILE} to ${NEW_FILE}"
-		CMD="${1} \"${NEW_FILE}\" \"${FILE}\""
+		local CMD="${1} \"${NEW_FILE}\" \"${FILE}\""
 		echo "Executing: ${CMD}"
 		eval "${CMD}"
 	done
@@ -108,7 +108,7 @@ function 7z_each {
 
 	#CMD_PREFIX="7z a -r -t7z -m0=lzma2 -mx=9 -mfb=273 -md=1g -ms=4g -mmt=off -mmtf=off -mqs=on -bt -bb3"
 	#CMD_PREFIX="7z a -r -t7z -m0=lzma2 -mfb=273 -md=1g -ms=2g -mqs=on -bt -bb3"
-	CMD_PREFIX="7z a -r -t7z -m0=lzma2 -mmt=off -mmtf=off -mqs=on -bt -bb3"
+	local CMD_PREFIX="7z a -r -t7z -m0=lzma2 -mmt=off -mmtf=off -mqs=on -bt -bb3"
 	zip_process_each_file "${CMD_PREFIX}" "7Zipping" "7z" "${1}"
 }
 export -f 7z_each

@@ -9,7 +9,7 @@ if [ "" = "${1}" ]; then
 fi
 
 function wait_for_user() {
-	RESPONSE="n"
+	local RESPONSE="n"
 	while [ "y" != "${RESPONSE}" ]; do
 		echo "Continue? [y to continue, ctrl+c to stop]"
 		read RESPONSE

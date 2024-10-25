@@ -13,16 +13,36 @@ function ffmpeg_convert_webm_to_mp3() {
 		echo "  This will convert each webm in the given directory to mp3."
 		return
 	fi
-	OLD_IFS=${IFS}
+	local OLD_IFS=${IFS}
 	IFS=$'\n'
-	FILES=`find ${1} -type f | grep webm`
+	local FILES=`find ${1} -type f | grep webm`
 	for FILE in ${FILES}; do
 	    echo -e "Processing video: ${FILE}";	    
 	    ffmpeg -i "${FILE}" -codec:a libmp3lame -b:a 320k -ar 44100 -y "${1}/${FILE%.webm}.mp3";
-	done;
+	done
 	IFS=${OLD_IFS}
 }
 export -f ffmpeg_convert_webm_to_mp3
+
+function ffmpeg_convert_to_flac() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: ffmpeg_convert_webm_to_mp3 [DIRECTORY]"
+		echo "  This will convert each webm in the given directory to mp3."
+		return
+	fi
+	local OLD_IFS=${IFS}
+	IFS=$'\n'
+
+	# source: https://superuser.com/questions/1145138/convert-wav-to-flac-in-ffmpeg
+
+	local FILES=`find ${1} -type f`
+	for FILE in ${FILES}; do
+	    echo -e "Processing file: ${FILE}";	    
+	    ffmpeg -i "${FILE}" -c:a flac "${1}/${FILE%.*}.flac";
+	done
+	IFS=${OLD_IFS}
+}
+export -f ffmpeg_convert_to_flac
 
 # youtube-dl stuff
 
