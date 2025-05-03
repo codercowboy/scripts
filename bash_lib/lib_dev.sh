@@ -30,4 +30,4 @@ export PATH="/usr/local/bin:${PATH}" # homebrew stuff is installed here
 export PATH="/Applications/RealVNC/VNC\ Viewer.app/Contents/MacOS:${PATH}" # vnc viewer
 
 #start a http server in current directory
-alias webserverhere='python -m SimpleHTTPServer 8070'
+alias webserverhere='python -m http.server 8070'

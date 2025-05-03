@@ -58,11 +58,26 @@ alias git_log_for_merge="git log --date-order --reverse --no-merges --abbrev-com
 alias git_get_branch="git branch --show-current"
 alias git_list_remote_branches="git branch -r"
 
-# arg 1 = file to stage
-function stage_git_file_fn() {	
-	FILE="${1}"
-	COMMIT_DIR="${CODE}/hyte/tools-commit"
-	SOURCE_DIR="${CODE}/hyte/tools-active"
+# arg 1 = mode, one of 'console', 'portal', 'docs'
+# arg 2 = file to stage
+function stage_git_file() {
+	if [ "console" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/console-commit"
+		SOURCE_DIR="${CODE}/hyte/console-active"
+	elif [ "portal" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
+		SOURCE_DIR="${CODE}/hyte/portal-active"
+	elif [ "docs" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
+		SOURCE_DIR="${CODE}/hyte/docs-active"
+	else
+		echo "USAGE: stage_git_file [MODE] [FILE]"
+		echo ""
+		echo "MODE options: console, portal, docs"
+		return 1
+	fi	
+
+	FILE="${2}"
 	if [ ! -e "${COMMIT_DIR}" ]; then
 		echo "Error, commit dir '${COMMIT_DIR}' does not exist."
 		return 1
@@ -101,12 +116,28 @@ function stage_git_file_fn() {
 
 	return 0
 }
-alias stage_git_file="stage_git_file_fn"
+export -f stage_git_file
 
-function stage_commit_files_fn() {
+# arg 1 = mode, one of 'console', 'portal', 'docs'
+function stage_commit_files() {
+	if [ "console" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/console-commit"
+		SOURCE_DIR="${CODE}/hyte/console-active"
+	elif [ "portal" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
+		SOURCE_DIR="${CODE}/hyte/portal-active"
+	elif [ "docs" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
+		SOURCE_DIR="${CODE}/hyte/docs-active"
+	else
+		echo "USAGE: stage_commit_files [MODE]"
+		echo ""
+		echo "MODE options: console, portal, docs"
+		return 1
+	fi	
+
 	OLD_PWD=`pwd -P`
-	COMMIT_DIR="${CODE}/hyte/tools-commit"
-	SOURCE_DIR="${CODE}/hyte/tools-active"
+
 	if [ ! -e "${COMMIT_DIR}" ]; then
 		echo "Error, commit dir '${COMMIT_DIR}' does not exist."
 		return 1
@@ -140,11 +171,11 @@ function stage_commit_files_fn() {
 			NEW_FILE=`echo "${FILE}" | sed 's/.*->.//'`
 			echo "Now moving file or dir: ${ORIGINAL_FILE} -> ${NEW_FILE}"
 			git mv "${COMMIT_DIR}/${ORIGINAL_FILE}" "${COMMIT_DIR}/${NEW_FILE}"
-			stage_git_file "${NEW_FILE}"
+			stage_git_file "${1}" "${NEW_FILE}"
 		elif [ "${GIT_OPERATION}" = "A" ]; then
-			stage_git_file "${FILE}"
+			stage_git_file "${1}" "${FILE}"
 		elif [ "${GIT_OPERATION}" = "M" ]; then
-			stage_git_file "${FILE}"
+			stage_git_file "${1}" "${FILE}"
 		else
 			echo "Unsupported git operation '${GIT_OPERATION}', line: ${STATUS_LINE}"
 			return 1
@@ -155,12 +186,28 @@ function stage_commit_files_fn() {
 
 	return 0
 }
-alias stage_commit_files="stage_commit_files_fn"
+export -f stage_commit_files
 
-function prep_commit_fn {	
-	COMMIT_DIR="${CODE}/hyte/tools-commit"
-	CLEAN_DIR="${CODE}/hyte/tools-clean"
-	SOURCE_DIR="${CODE}/hyte/tools-active"
+# arg 1 = mode, one of 'console', 'portal', 'docs'
+function prep_commit {	
+	if [ "console" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/console-commit"
+		CLEAN_DIR="${CODE}/hyte/commit/clean/console"
+		SOURCE_DIR="${CODE}/hyte/console-active"
+	elif [ "portal" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
+		CLEAN_DIR="${CODE}/hyte/commit/clean/portal"
+		SOURCE_DIR="${CODE}/hyte/portal-active"
+	elif [ "docs" = "${1}" ]; then
+		COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
+		CLEAN_DIR="${CODE}/hyte/commit/clean/docs"
+		SOURCE_DIR="${CODE}/hyte/docs-active"
+	else
+		echo "USAGE: prep_commit [MODE]"
+		echo ""
+		echo "MODE options: console, portal, docs"
+		return 1
+	fi	
 	
 	if [ -e "${COMMIT_DIR}" ]; then
 		echo "Remove commit dir ${COMMIT_DIR}? ('YES' to select, enter to skip)"
@@ -173,7 +220,9 @@ function prep_commit_fn {
 			echo "Error, commit dir '${COMMIT_DIR}' already exists."
 			return 1
 		fi
-	elif [ ! -e "${CLEAN_DIR}" ]; then
+	fi
+
+	if [ ! -e "${CLEAN_DIR}" ]; then
 		echo "Error, clean dir '${CLEAN_DIR}' does not exist."
 		return 1
 	elif [ ! -e "${SOURCE_DIR}" ]; then
@@ -192,22 +241,18 @@ function prep_commit_fn {
 	
 	cd "${CLEAN_DIR}" && git fetch --all --prune
 	cd "${CLEAN_DIR}" && git checkout main && git add * && git stash && git_pull_force_overwrite 
-	cd "${CLEAN_DIR}" && git checkout 5.4.x-maint && git add * && git stash && git_pull_force_overwrite 
-	cd "${CLEAN_DIR}" && git checkout 5.6.x-maint && git add * && git stash && git_pull_force_overwrite 
-	cd "${CLEAN_DIR}" && git checkout 5.8.x-maint && git add * && git stash && git_pull_force_overwrite 
-	cd "${CLEAN_DIR}" && git checkout 5.10.x-maint && git add * && git stash && git_pull_force_overwrite 
 
 	echo "Creating commit dir: ${COMMIT_DIR}"
 	cp -r "${CLEAN_DIR}" "${COMMIT_DIR}"
 
 	TMP_BRANCH=`cd "${SOURCE_DIR}" && git branch --show-current`
 	if [ -z "${TMP_BRANCH}" ]; then
-		TMP_BRANCH="5.8.x-maint"
+		TMP_BRANCH="main"
 	fi
 	echo "Checking out branch: ${TMP_BRANCH}"
 	cd "${COMMIT_DIR}" && git checkout "${TMP_BRANCH}"
 
-	stage_commit_files
+	stage_commit_files "${1}"
 	
 	echo "Opening sourcetree for ${COMMIT_DIR}"
 	echo "WARNING: don't forget to create a branch ie 'git checkout -b hc-22'"
@@ -218,7 +263,7 @@ function prep_commit_fn {
 
 	return 0
 }
-alias prep_commit="prep_commit_fn"
+export -f prep_commit
 
 function git_backup {
 	if [ "" = "${1}" ]; then
@@ -266,6 +311,7 @@ function git_backup {
 
 	return 0
 }
+export -f git_backup
 
 # arg 1 - directory to work in
 function git_update {
@@ -323,4 +369,8 @@ function git_remove_remote_branch {
 	echo "Removing remote branch: ${BRANCH_TO_REMOVE}"
 	git push origin --delete "${BRANCH_TO_REMOVE}"
 	return ${?}
+}
+
+function git_show_remote_url {
+	git ls-remote --get-url origin
 }
