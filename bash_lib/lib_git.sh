@@ -5,51 +5,6 @@ if [ "`type -t stage_git_file_fn`" = "function" ]; then
 	return 0
 fi
 
-if [ "${VPN_NAME}" = "" ]; then
-	export VPN_NAME="VPN (thin)"
-fi
-
-function vpn_connect {
-	echo "[CONNECTING TO VPN: ${VPN_NAME}]"
-	
-	local VPN_STATUS=`networksetup -showpppoestatus "${VPN_NAME}"`
-	if [ "connected" = "${VPN_STATUS}" ]; then
-		echo "VPN is already connected"
-		return 0
-	fi	
-
-	networksetup -connectpppoeservice "${VPN_NAME}"
-	sleep 10
-	
-	local VPN_STATUS=`networksetup -showpppoestatus "${VPN_NAME}"`
-	if [ "connected" != "${VPN_STATUS}" ]; then
-		echo "ERROR: VPN didn't connect, status is: ${VPN_STATUS}"
-		return 1
-	fi
-
-	return 0
-}
-
-function vpn_disconnect {
-	echo "[DISCONNECTING FROM VPN: ${VPN_NAME}]"
-	local VPN_STATUS=`networksetup -showpppoestatus "${VPN_NAME}"`
-	if [ "disconnected" = "${VPN_STATUS}" ]; then
-		echo "VPN is already disconnected"
-		return 0
-	fi
-	
-	networksetup -disconnectpppoeservice "${VPN_NAME}"
-	sleep 10
-	
-	local VPN_STATUS=`networksetup -showpppoestatus "${VPN_NAME}"`
-	if [ "disconnected" != "${VPN_STATUS}" ]; then
-		echo "ERROR: VPN didn't disconnect, status is: ${VPN_STATUS}"
-		return 1
-	fi
-
-	return 0
-}
-
 # make git log output human readable
 alias gitlog='git log --pretty=format:"%h - %an, %ar : %s"'
 
@@ -62,14 +17,14 @@ alias git_list_remote_branches="git branch -r"
 # arg 2 = file to stage
 function stage_git_file() {
 	if [ "console" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/console-commit"
-		SOURCE_DIR="${CODE}/hyte/console-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/console-commit"
+		local SOURCE_DIR="${CODE}/hyte/console-active"
 	elif [ "portal" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
-		SOURCE_DIR="${CODE}/hyte/portal-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
+		local SOURCE_DIR="${CODE}/hyte/portal-active"
 	elif [ "docs" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
-		SOURCE_DIR="${CODE}/hyte/docs-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
+		local SOURCE_DIR="${CODE}/hyte/docs-active"
 	else
 		echo "USAGE: stage_git_file [MODE] [FILE]"
 		echo ""
@@ -77,7 +32,7 @@ function stage_git_file() {
 		return 1
 	fi	
 
-	FILE="${2}"
+	local FILE="${2}"
 	if [ ! -e "${COMMIT_DIR}" ]; then
 		echo "Error, commit dir '${COMMIT_DIR}' does not exist."
 		return 1
@@ -92,7 +47,7 @@ function stage_git_file() {
 	# if a file has a $ in it (like wicket html files), replace those with '?'
 	FILE="${FILE/$/?}"
 
-	PARENT_DIR=`dirname "${FILE}"`
+	local PARENT_DIR=`dirname "${FILE}"`
 
 	if [ ! -d "${COMMIT_DIR}/${PARENT_DIR}" ]; then
 		echo "Creating parent dir: ${COMMIT_DIR}/${PARENT_DIR}"
@@ -101,10 +56,10 @@ function stage_git_file() {
 
 	if [ -d "${SOURCE_DIR}/${FILE}" ]; then
 		echo "Now copying dir: ${FILE}"
-		TARGET_DIR=`dirname "${COMMIT_DIR}/${FILE}"`
+		local TARGET_DIR=`dirname "${COMMIT_DIR}/${FILE}"`
 		echo "TARGET_DIR: ${TARGET_DIR}"
-		SOURCE_FILE=`basename "${FILE}"`
-		SOURCE=`dirname "${SOURCE_DIR}/${FILE}"`
+		local SOURCE_FILE=`basename "${FILE}"`
+		local SOURCE=`dirname "${SOURCE_DIR}/${FILE}"`
 		SOURCE="${SOURCE}/${SOURCE_FILE}"
 		echo "SOURCE: ${SOURCE}"
 		cp -r "${SOURCE}" "${TARGET_DIR}"			
@@ -121,14 +76,14 @@ export -f stage_git_file
 # arg 1 = mode, one of 'console', 'portal', 'docs'
 function stage_commit_files() {
 	if [ "console" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/console-commit"
-		SOURCE_DIR="${CODE}/hyte/console-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/console-commit"
+		local SOURCE_DIR="${CODE}/hyte/console-active"
 	elif [ "portal" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
-		SOURCE_DIR="${CODE}/hyte/portal-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
+		local SOURCE_DIR="${CODE}/hyte/portal-active"
 	elif [ "docs" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
-		SOURCE_DIR="${CODE}/hyte/docs-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
+		local SOURCE_DIR="${CODE}/hyte/docs-active"
 	else
 		echo "USAGE: stage_commit_files [MODE]"
 		echo ""
@@ -136,7 +91,7 @@ function stage_commit_files() {
 		return 1
 	fi	
 
-	OLD_PWD=`pwd -P`
+	local OLD_PWD=`pwd -P`
 
 	if [ ! -e "${COMMIT_DIR}" ]; then
 		echo "Error, commit dir '${COMMIT_DIR}' does not exist."
@@ -147,7 +102,7 @@ function stage_commit_files() {
 	fi
 
 	#make for's argument seperator newline only
-	oIFS=${IFS}
+	local oIFS=${IFS}
 	IFS=$'\n'
 
 	echo "Staging files from source dir to commit dir"
@@ -156,8 +111,8 @@ function stage_commit_files() {
 
 	FILES=`cd "${SOURCE_DIR}" && git status -s`
 	for STATUS_LINE in ${FILES}; do		
-		FILE=`echo "${STATUS_LINE}" | sed 's/...//'`
-		GIT_OPERATION=`echo ${STATUS_LINE} | sed 's/\(.\).*/\1/'`
+		local FILE=`echo "${STATUS_LINE}" | sed 's/...//'`
+		local GIT_OPERATION=`echo ${STATUS_LINE} | sed 's/\(.\).*/\1/'`
 		if [ "${GIT_OPERATION}" = "D" ]; then
 			echo "Now removing file or dir: ${FILE}"
 			FILE="${COMMIT_DIR}/${FILE}"
@@ -165,10 +120,10 @@ function stage_commit_files() {
 			FILE="${FILE/$/?}"			
 			rm -Rf "${FILE}"
 		elif [ "${GIT_OPERATION}" = "RM" -o "${GIT_OPERATION}" = "R" ]; then
-			ORIGINAL_FILE=`echo "${FILE}" | sed 's/.->.*//'`
+			local ORIGINAL_FILE=`echo "${FILE}" | sed 's/.->.*//'`
 			# if a file has a $ in it (like wicket html files), replace those with '?'
 			ORIGINAL_FILE="${ORIGINAL_FILE/$/?}"			
-			NEW_FILE=`echo "${FILE}" | sed 's/.*->.//'`
+			local NEW_FILE=`echo "${FILE}" | sed 's/.*->.//'`
 			echo "Now moving file or dir: ${ORIGINAL_FILE} -> ${NEW_FILE}"
 			git mv "${COMMIT_DIR}/${ORIGINAL_FILE}" "${COMMIT_DIR}/${NEW_FILE}"
 			stage_git_file "${1}" "${NEW_FILE}"
@@ -191,17 +146,17 @@ export -f stage_commit_files
 # arg 1 = mode, one of 'console', 'portal', 'docs'
 function prep_commit {	
 	if [ "console" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/console-commit"
-		CLEAN_DIR="${CODE}/hyte/commit/clean/console"
-		SOURCE_DIR="${CODE}/hyte/console-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/console-commit"
+		local CLEAN_DIR="${CODE}/hyte/commit/clean/console"
+		local SOURCE_DIR="${CODE}/hyte/console-active"
 	elif [ "portal" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
-		CLEAN_DIR="${CODE}/hyte/commit/clean/portal"
-		SOURCE_DIR="${CODE}/hyte/portal-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
+		local CLEAN_DIR="${CODE}/hyte/commit/clean/portal"
+		local SOURCE_DIR="${CODE}/hyte/portal-active"
 	elif [ "docs" = "${1}" ]; then
-		COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
-		CLEAN_DIR="${CODE}/hyte/commit/clean/docs"
-		SOURCE_DIR="${CODE}/hyte/docs-active"
+		local COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
+		local CLEAN_DIR="${CODE}/hyte/commit/clean/docs"
+		local SOURCE_DIR="${CODE}/hyte/docs-active"
 	else
 		echo "USAGE: prep_commit [MODE]"
 		echo ""
@@ -245,9 +200,9 @@ function prep_commit {
 	echo "Creating commit dir: ${COMMIT_DIR}"
 	cp -r "${CLEAN_DIR}" "${COMMIT_DIR}"
 
-	TMP_BRANCH=`cd "${SOURCE_DIR}" && git branch --show-current`
+	local TMP_BRANCH=`cd "${SOURCE_DIR}" && git branch --show-current`
 	if [ -z "${TMP_BRANCH}" ]; then
-		TMP_BRANCH="main"
+		local TMP_BRANCH="main"
 	fi
 	echo "Checking out branch: ${TMP_BRANCH}"
 	cd "${COMMIT_DIR}" && git checkout "${TMP_BRANCH}"
@@ -276,7 +231,7 @@ function git_backup {
 		return 1
 	fi
 
-	BACKUP_NAME="${2}"
+	local BACKUP_NAME="${2}"
 
 	if [ -z "${BACKUP_NAME}" ]; then
 		TMP_BRANCH=`cd "${1}" && git branch --show-current`
@@ -292,9 +247,9 @@ function git_backup {
 
 	mkdir -p "${HYTE_BACKUP_DIR}"
 
-	FOLDER_NAME=`basename "${1}"`
-	FILE_DATE=`date "+%Y%m%d.%H%M%S"`
-	ZIP_NAME="${FOLDER_NAME}.${BACKUP_NAME}.${FILE_DATE}.zip"
+	local FOLDER_NAME=`basename "${1}"`
+	local FILE_DATE=`date "+%Y%m%d.%H%M%S"`
+	local ZIP_NAME="${FOLDER_NAME}.${BACKUP_NAME}.${FILE_DATE}.zip"
 
 	echo "[Backing up: ${1} to ${HYTE_BACKUP_DIR}/${ZIP_NAME}]"
 	
@@ -352,7 +307,7 @@ function git_update {
 
 # arg 1 = branch to remove
 function git_remove_remote_branch {
-	BRANCH_TO_REMOVE="${1}"
+	local BRANCH_TO_REMOVE="${1}"
 	if [ "" = "${BRANCH_TO_REMOVE}" ]; then
 		echo "USAGE: git_remove_remote_branch [branch]"
 		return 1

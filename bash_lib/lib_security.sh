@@ -34,12 +34,12 @@ function ssh_setup_passwordless {
         echo "rsa key for ssh already exists: ~/.ssh/id_rsa"
     fi
 
-	HOST_PUBLIC_KEY=`cat ~/.ssh/id_rsa.pub`
-
-	REMOTE_COMMAND="mkdir -p ~/.ssh;
-		chmod 700 ~/.ssh; 
-		echo \"${HOST_PUBLIC_KEY}\" >> ~/.ssh/authorized_keys;
-		chmod 644 ~/.ssh/authorized_keys;"
+	local HOST_PUBLIC_KEY=`cat ~/.ssh/id_rsa.pub`
+	local REMOTE_COMMAND="mkdir -p ~/.ssh;
+		
+	chmod 700 ~/.ssh; 
+	echo \"${HOST_PUBLIC_KEY}\" >> ~/.ssh/authorized_keys;
+	chmod 644 ~/.ssh/authorized_keys;"
 
 	echo "Enter your password for the remote host, we need this to copy your public key to the remote host with ssh."
 

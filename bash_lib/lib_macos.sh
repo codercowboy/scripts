@@ -15,6 +15,8 @@ alias cls='printf "\33c\e[3J"'
 # unlock osx "locked files" (whatever that is)
 alias unlock_files='sudo chflags nouchg ${1}/*'
 
+alias vlc_play_folder='/Applications/VLC.app/Contents/MacOS/VLC ${@}'
+
 # auto open sublime text to the given directory or file.
 # can't get this to work as an alias, oh well.
 function stext { /Applications/Sublime\ Text.app/Contents/SharedSupport/bin/subl "${@}"; } 
@@ -29,7 +31,7 @@ function terminal_open_tab {
 export -f terminal_open_tab
 
 function terminal_tab_execute {
-    COMMAND="${1}"        
+    local COMMAND="${1}"        
     COMMAND="tell application \"Terminal\" to do script \"${1}\" in selected tab of the front window"
     # echo "Command is: \"${COMMAND}\""
     osascript -e 'tell application "Terminal" to activate'

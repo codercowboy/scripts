@@ -109,22 +109,22 @@ function run_prefix_or_suffix {
 		print_usage "${FILE_PATH} is not a directory."
 	fi
 
-	FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
+	local FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
 	for FILE in ${FILES}; do
 		# echo "current file: ${FILE}"
 
-		ORIGINAL_BASENAME=`basename "$FILE"`
-		ORIGINAL_DIRNAME=`dirname "${FILE}"`
+		local ORIGINAL_BASENAME=`basename "$FILE"`
+		local ORIGINAL_DIRNAME=`dirname "${FILE}"`
 		# file/ extenstion extraction examples: https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
-		FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah
-		FILE_EXTENSION="${ORIGINAL_BASENAME#*.}" # example blah.tar.gz -> tar.gz
+		local FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah
+		local FILE_EXTENSION="${ORIGINAL_BASENAME#*.}" # example blah.tar.gz -> tar.gz
 
 		# echo "name: ${FILE_WITHOUT_EXTENSION}, extension: ${FILE_EXTENSION}"	
 
 		if [ "${OPERATION}" = "prefix" ]; then
-			NEW_FILE="${BASE_PATH}/${ARGUMENT}${ORIGINAL_BASENAME}"
+			local NEW_FILE="${BASE_PATH}/${ARGUMENT}${ORIGINAL_BASENAME}"
 		elif [ "${OPERATION}" = "suffix" ]; then
-			NEW_FILE="${BASE_PATH}/${FILE_WITHOUT_EXTENSION}${ARGUMENT}.${FILE_EXTENSION}"
+			local NEW_FILE="${BASE_PATH}/${FILE_WITHOUT_EXTENSION}${ARGUMENT}.${FILE_EXTENSION}"
 		fi
 
 		if [ -e "${NEW_FILE}" ]; then
@@ -143,13 +143,13 @@ NEW_FILE_NAMES=()
 
 # arg 1 is file to read file names from
 function get_filenames {
-	FILE_NAMES_FILE="${1}"
+	local FILE_NAMES_FILE="${1}"
 	echo "Reading file names from: ${FILE_NAMES_FILE}"
 	if [ ! -e "${FILE_NAMES_FILE}" ]; then
 		echo "File does not exist: ${FILE_NAMES_FILE}"
 		exit 0
 	fi	
-	LINES=`cat "${FILE_NAMES_FILE}"`
+	local LINES=`cat "${FILE_NAMES_FILE}"`
 	
 	#make for's argument seperator newline only
 	IFS=$'\n'
@@ -163,7 +163,7 @@ function get_filenames {
 
 		# echo "Processing line: '${LINE}'"
 
-		FIRST_LINE_CHAR=`echo "${LINE}" | head -c 1`
+		local FIRST_LINE_CHAR=`echo "${LINE}" | head -c 1`
 				
 		if [ "${LINE}" = "" ]; then
 			# echo "Line is empty, skipping: ${LINE}"
@@ -185,12 +185,12 @@ function run_from_file {
 	#make for's argument seperator newline only
 	IFS=$'\n'
 
-	FILE_EXTENSION_FILTER=""
+	local FILE_EXTENSION_FILTER=""
 	if [ ! -z "${4}" ]; then 
-		FILE_EXTENSION_FILTER="${3}"
+		local FILE_EXTENSION_FILTER="${3}"
 		echo "Files with the following extension will be renamed: ${FILE_EXTENSION_FILTER}"
-		FILE_PATH="${4}"
-		BASE_PATH="${FILE_PATH%*/}" #this will put a / on the end of the path if there isnt one already
+		local FILE_PATH="${4}"
+		local BASE_PATH="${FILE_PATH%*/}" #this will put a / on the end of the path if there isnt one already
 	else 
 		echo "File extension matching is disabled."
 	fi
@@ -201,25 +201,25 @@ function run_from_file {
 		echo "Processing files in path: ${FILE_PATH}"
 	fi	
 
-	FILE_NAMES_FILE="${ARGUMENT}"
+	local FILE_NAMES_FILE="${ARGUMENT}"
 	get_filenames "${FILE_NAMES_FILE}"
 	# echo "got names:"
 	# declare -p NEW_FILE_NAMES # prints array details
-	NEW_FILE_NAMES_COUNT=${#NEW_FILE_NAMES[@]}
-	NEW_FILE_NAMES_INDEX=0
+	local NEW_FILE_NAMES_COUNT=${#NEW_FILE_NAMES[@]}
+	local NEW_FILE_NAMES_INDEX=0
 
 	if [ "0" = "${NEW_FILE_NAMES_COUNT}" ]; then
 		echo "No file names were found in file. Exiting."
 		exit 1
 	fi
 
-	FILE_LIST_FILE_BASENAME=`basename "${FILE_NAMES_FILE}"`
+	local FILE_LIST_FILE_BASENAME=`basename "${FILE_NAMES_FILE}"`
 
-	FILES=`find "${FILE_PATH}" -type f -d 1 | sort`
+	local FILES=`find "${FILE_PATH}" -type f -d 1 | sort`
 
 	for FILE in ${FILES}; do
-		OLD_BASENAME=`basename "${FILE}"`
-		OLD_FILE_EXTENSION=${OLD_BASENAME##*.}
+		local OLD_BASENAME=`basename "${FILE}"`
+		local OLD_FILE_EXTENSION=${OLD_BASENAME##*.}
 
 		echo "Current file: '${OLD_BASENAME}'"
 
@@ -231,10 +231,10 @@ function run_from_file {
 			continue
 		fi
 
-		NEW_FILE_NAME="${NEW_FILE_NAMES[$NEW_FILE_NAMES_INDEX]}.${OLD_FILE_EXTENSION}"
+		local NEW_FILE_NAME="${NEW_FILE_NAMES[$NEW_FILE_NAMES_INDEX]}.${OLD_FILE_EXTENSION}"
 
-		ORIGINAL_DIRNAME=`dirname "${FILE}"`
-		NEW_FILE="${ORIGINAL_DIRNAME}/${NEW_FILE_NAME}"
+		local ORIGINAL_DIRNAME=`dirname "${FILE}"`
+		local NEW_FILE="${ORIGINAL_DIRNAME}/${NEW_FILE_NAME}"
 
 		if [ -e "${NEW_FILE}" ]; then
 			echo "ERROR: target file already exists, not renaming: ${NEW_FILE}"				
@@ -269,20 +269,20 @@ function run_trim {
 		exit 1
 	fi
 
-	FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
+	local FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
 	for FILE in ${FILES}; do
 		# echo "current file: ${FILE}"
 
-		ORIGINAL_BASENAME=`basename "$FILE"`
-		ORIGINAL_DIRNAME=`dirname "${FILE}"`
+		local ORIGINAL_BASENAME=`basename "$FILE"`
+		local ORIGINAL_DIRNAME=`dirname "${FILE}"`
 		# file/ extenstion extraction examples: https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
-		FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah
-		FILE_EXTENSION="${ORIGINAL_BASENAME#*.}" # example blah.tar.gz -> tar.gz
+		local FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah
+		local FILE_EXTENSION="${ORIGINAL_BASENAME#*.}" # example blah.tar.gz -> tar.gz
 
 		# echo "name: ${FILE_WITHOUT_EXTENSION}, extension: ${FILE_EXTENSION}"	
 
-		TRIMMED_FILE_WITHOUT_EXTENSION=`echo "${FILE_WITHOUT_EXTENSION}" | head -c ${ARGUMENT}`
-		NEW_FILE="${BASE_PATH}/${TRIMMED_FILE_WITHOUT_EXTENSION}.${FILE_EXTENSION}"
+		local TRIMMED_FILE_WITHOUT_EXTENSION=`echo "${FILE_WITHOUT_EXTENSION}" | head -c ${ARGUMENT}`
+		local NEW_FILE="${BASE_PATH}/${TRIMMED_FILE_WITHOUT_EXTENSION}.${FILE_EXTENSION}"
 
 		if [ "${TRIMMED_FILE_WITHOUT_EXTENSION}" = "${FILE_WITHOUT_EXTENSION}" ]; then
 			echo "File's name is less than ${ARGUMENT} characters already: ${NEW_FILE}"
@@ -303,19 +303,19 @@ function run_remove {
 	#make for's argument seperator newline only
 	IFS=$'\n'
 
-	SEARCH_STRING="${1}"
+	local SEARCH_STRING="${1}"
 
-	FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
+	local FILES=`find "${FILE_PATH}" -type f -name '*' | sort | tr -d '\15\32'`
 	for FILE in ${FILES}; do
 		# echo "current file: ${FILE}"
 
-		ORIGINAL_BASENAME=`basename "$FILE"`
-		ORIGINAL_DIRNAME=`dirname "${FILE}"`
+		local ORIGINAL_BASENAME=`basename "$FILE"`
+		local ORIGINAL_DIRNAME=`dirname "${FILE}"`
 
 		# string replace: https://stackoverflow.com/questions/13210880/replace-one-substring-for-another-string-in-shell-script
-		NEW_BASE_NAME="${ORIGINAL_BASENAME//$SEARCH_STRING/}"
+		local NEW_BASE_NAME="${ORIGINAL_BASENAME//$SEARCH_STRING/}"
 
-		NEW_FILE="${BASE_PATH}/${NEW_BASE_NAME}"
+		local NEW_FILE="${BASE_PATH}/${NEW_BASE_NAME}"
 
 		if [ "${ORIGINAL_BASENAME}" = "${NEW_BASE_NAME}" ]; then
 			echo "File doesn't contain: '${SEARCH_STRING}': ${NEW_FILE}"

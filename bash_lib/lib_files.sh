@@ -13,7 +13,7 @@ function inspect_files {
 	echo "Gathering checksum info to file: ${2}-checksums.txt"
 	md5tool.sh DISPLAY "${1}" > "${2}-checksums.txt"	
 	# reverses output, instead of "2G ./somefile" it is now "./somefile [2G]"
-	SED_COMMAND="sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]]/::/' | sed -E 's/(.*)::(.*)/\2 [\1]/'"
+	local SED_COMMAND="sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]]/::/' | sed -E 's/(.*)::(.*)/\2 [\1]/'"
 	echo "Gathering dir info to file: ${2}-dirs.txt"
 	eval "du -h \"${1}\" | ${SED_COMMAND}" > "${2}-dirs.txt"
 	echo "Gathering file info w/ actual size to file: ${2}-files-real-size.txt"
@@ -31,10 +31,10 @@ function move_files_here_fn {
 		return
 	fi
 
-	OLD_IFS=${IFS}
+	local OLD_IFS=${IFS}
 	IFS=$'\n'
-	FILES=`find "${1}" -type f | sort`
-	FILE_COUNT=`echo "${FILES}" | wc -l`
+	local FILES=`find "${1}" -type f | sort`
+	local FILE_COUNT=`echo "${FILES}" | wc -l`
 	echo "Moving ${FILE_COUNT} files to target directory `pwd -P`"
 	for FILE in ${FILES}; do	
 		echo "Moving: ${FILE}"	

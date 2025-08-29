@@ -107,8 +107,8 @@ function my_rsync() {
 IFS=$'\n'
 
 function run_backup_job() {
-	TARGET_DIR="${1}"
-	RSYNC_ARGS="${2}"
+	local TARGET_DIR="${1}"
+	local RSYNC_ARGS="${2}"
 
 	echo "Backing up to: ${TARGET_DIR}"
 	mkdir -p "${TARGET_DIR}"
@@ -139,7 +139,7 @@ function run_backup_job() {
 
 # arg 1 is target drive
 function backup_music() {
-	TARGET_MUSIC_FOLDER=""
+	local TARGET_MUSIC_FOLDER=""
 
 	if [ ! -e "${LOCAL_MUSIC_FOLDER}" ]; then
 		echo "Not backing up music, can't find expected local music dir: ${LOCAL_MUSIC_FOLDER}"
@@ -259,6 +259,9 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/voicememos/"
 	my_rsync "${MY_USER_HOME}/Library/Application Support/com.apple.voicememos/" "${LOCAL_RSYNC_TARGET_DIR}/System/voicememos/"	
 	my_rsync "${MY_USER_HOME}/Library/Fonts" "${LOCAL_RSYNC_TARGET_DIR}/System/"
+
+	mkdir -p "${LOCAL_RSYNC_TARGET_DIR}/Garageband Track Settings/"
+	my_rsync "${MY_USER_HOME}/Music/Audio Music Apps/Patches" "${LOCAL_RSYNC_TARGET_DIR}/Garageband Track Settings/"
 	
 	echo "backing up downloads"
 	my_rsync "${MY_USER_HOME}/Downloads" "${LOCAL_RSYNC_TARGET_DIR}/"

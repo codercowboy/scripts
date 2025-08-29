@@ -15,12 +15,14 @@ function chrome_local_dev {
 }
 export -f chrome_local_dev
 
-alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=${TOOLS}/jdk-11.0.18.jdk/Contents/Home'
-alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=${TOOLS}/jdk1.8.0_411/Contents/Home'
-usejdk11
+alias usejdk24='echo "switching to jdk 24" && export JAVA_HOME=${TOOLS}/jdk/jdk-24.0.2.jdk/Contents/Home'
+alias usejdk21='echo "switching to jdk 21" && export JAVA_HOME=${TOOLS}/jdk/jdk-21.0.2.jdk/Contents/Home'
+alias usejdk11='echo "switching to jdk 11" && export JAVA_HOME=${TOOLS}/jdk/jdk-11.0.18.jdk/Contents/Home'
+alias usejdk8='echo "switching to jdk 8" && export JAVA_HOME=${TOOLS}/jdk/jdk1.8.0_411/Contents/Home'
+usejdk21
 
 export M2_HOME="${TOOLS}/apache-maven-3.8.6" # maven stuff
-export MAVEN_OPTS="-Xmx3g -XX:MaxPermSize=512m" # maven stuff
+export MAVEN_OPTS="-Xmx3g" # maven stuff
 export MVND_HOME="${TOOLS}/mvnd-0.8.2-darwin-amd64" # mvnd
 export GOPATH=${HOME}/Documents/code/tools/go #go
 

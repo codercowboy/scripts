@@ -93,7 +93,7 @@ function split_file() {
 		cp "${2}" "${2}.part.aa"
 	fi
 	#asterisk reference: https://unix.stackexchange.com/questions/378205/use-asterisk-in-variables
-	PARTS_LIST=( "${2}.part."* )
+	local PARTS_LIST=( "${2}.part."* )
 	echo "(${#PARTS_LIST[@]} parts created)"
 	#echo "Parts: ${PARTS_LIST[@]}"
 }
@@ -108,7 +108,7 @@ function join_file() {
 		echo "Not joining file, output file already exists: ${2}"
 		return
 	fi
-	PARTS_LIST=( "${1}.part."* )
+	local PARTS_LIST=( "${1}.part."* )
 	#echo "Parts: ${PARTS_LIST[@]}"
 	echo -n "Joining file: ${1} (${#PARTS_LIST[@]} parts) ... "
 	cat "${PARTS_LIST[@]}" > "${2}"
@@ -118,15 +118,15 @@ function join_file() {
 # arg 1 = directory to search
 # arg 2 = suffix to add to original filename (ie "joined" )
 function join_files() {
-	SUFFIX=".${2}"
+	local SUFFIX=".${2}"
 	if [ "." = "${SUFFIX}" ]; then
 		SUFFIX=""
 	fi
 	echo "Joining Files From Directory: ${1}"
-	FILE_LIST=( "${1}/"*.part.aa )	
+	local FILE_LIST=( "${1}/"*.part.aa )	
 	# echo "Found files to join: ${FILE_LIST[@]}"
 	for FILE in "${FILE_LIST[@]}"; do
-		ORIGINAL_FILE=`echo "${FILE}" | sed 's/.part.aa//'`
+		local ORIGINAL_FILE=`echo "${FILE}" | sed 's/.part.aa//'`
 		join_file "${ORIGINAL_FILE}" "${ORIGINAL_FILE}${SUFFIX}"
 	done
 	echo "Finished Joining Files."
@@ -140,21 +140,21 @@ function get_checksum() {
 # arg 1 is directory to run test in
 function run_test() {
 	echo "starting test"
-	TMP_DIR="${1}/${RANDOM}"
+	local TMP_DIR="${1}/${RANDOM}"
 	
 	echo "TMP_DIR: ${TMP_DIR}"
 	
 	# create our test directory
 	mkdir -p "${TMP_DIR}"
 
-	SMALL_FILE="${TMP_DIR}/small file.bin"
+	local SMALL_FILE="${TMP_DIR}/small file.bin"
 	echo "creating 1MB small file: ${SMALL_FILE}"
-	MEGABYTE=`expr 1024 \* 1024`
+	local MEGABYTE=`expr 1024 \* 1024`
 	head -c ${MEGABYTE} /dev/random > "${SMALL_FILE}"
 	
-	BIG_FILE="${TMP_DIR}/big file.bin"
+	local BIG_FILE="${TMP_DIR}/big file.bin"
 	echo "creating 100MB big file: ${BIG_FILE}"	
-	HUNDRED_MEGABYTE=`expr 100 \* ${MEGABYTE}`
+	local HUNDRED_MEGABYTE=`expr 100 \* ${MEGABYTE}`
 	head -c ${HUNDRED_MEGABYTE} /dev/random > "${BIG_FILE}"
 
 	echo "splitting small file into 2MB chunks (it will make one file that's the same as the original file)"
@@ -173,7 +173,7 @@ function run_test() {
 	ls -alh "${TMP_DIR}"
 	echo ""
 
-	ALL_FILES_LIST=( "${TMP_DIR}/"* )
+	local ALL_FILES_LIST=( "${TMP_DIR}/"* )
 	echo ""
 	echo "ALL_FILES_LIST: ${ALL_FILES_LIST[@]}"
 	echo ""
@@ -181,17 +181,17 @@ function run_test() {
 	md5sum "${ALL_FILES_LIST[@]}"
 	echo ""
 
-	TEST_SUCCESS="true"
+	local TEST_SUCCESS="true"
 
-	BIG_FILE_CHECKSUM=`get_checksum "${BIG_FILE}"`
-	BIG_FILE_JOINED_CHECKSUM=`get_checksum "${BIG_FILE}.joined"`
+	local BIG_FILE_CHECKSUM=`get_checksum "${BIG_FILE}"`
+	local BIG_FILE_JOINED_CHECKSUM=`get_checksum "${BIG_FILE}.joined"`
 	echo "BIG_FILE_CHECKSUM: ${BIG_FILE_CHECKSUM}"
 	echo "BIG_FILE_JOINED_CHECKSUM: ${BIG_FILE_JOINED_CHECKSUM}"
 
 	
 	if [ "${BIG_FILE_CHECKSUM}" != "${BIG_FILE_JOINED_CHECKSUM}" ]; then
 		echo "TEST FAILED: Big file checksums do not match."
-		TEST_SUCCESS="false"
+		local TEST_SUCCESS="false"
 		
 	fi
 

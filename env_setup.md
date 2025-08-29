@@ -71,6 +71,11 @@ INITIAL SETUP
   * Install open folder in terminal.
     * http://lifehacker.com/launch-an-os-x-terminal-window-from-a-specific-folder-1466745514
     * System Preferences > Keyboard > Shortcuts > Services -> "New Terminal at Folder"
+  * Prevent mac mini from falling asleep:
+    * System Settings -> Displays -> Advanced -> Battery & Energy -> Prevent automatic sleeping on power adapter when the display is off
+    * System Settings -> Lock Screen -> Turn display off when inactive -> Never
+    * apple logo -> about this mac -> more info -> power - disable any automatic sleep item
+    * More: https://www.reddit.com/r/MacOS/comments/141cjzs/mac_mini_keeps_going_to_sleep/
 
 VERIFICATION
 ============

@@ -12,6 +12,9 @@
 #
 # UPDATES:
 # 
+# 2025/08/29
+# - Fix output issues with newer md5sum
+#
 # 2017/05/02
 # - Removed "Update" mode due to numerous bugs. I'll rewrite it in Java.
 #
@@ -130,8 +133,8 @@ function test_command_success() {
 }
 
 function create_md5() {
-  completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
-  CHECKSUM_FILE="${completedpath}${md5filename}"
+  local completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
+  local CHECKSUM_FILE="${completedpath}${md5filename}"
 
   if test -e "${CHECKSUM_FILE}"; then
     echo "Removing Old ${CHECKSUM_FILE}"
@@ -151,20 +154,20 @@ function create_md5() {
   cd "$completedpath" && find . -type f -print0 | xargs -0 md5sum -b | grep -v "${md5filename}" >> "${md5filename}"
   test_command_success "Could not create checksum file: ${CHECKSUM_FILE}"
   cd - > /dev/null
-  CHECKSUM_FOR_FILE=$(md5sum "${completedpath}${md5filename}")
+  local CHECKSUM_FOR_FILE=$(md5sum "${completedpath}${md5filename}")
   echo "${CHECKSUM_FOR_FILE}"  
 }
 
 function create_md5_for_each_subdirectory() {
-	SUBDIRECTORIES=`find "$1" -maxdepth 1 -mindepth 1 -type d`
+	local SUBDIRECTORIES=`find "$1" -maxdepth 1 -mindepth 1 -type d`
 	for SUBDIRECTORY in ${SUBDIRECTORIES}; do
 		create_md5 "${SUBDIRECTORY}"
 	done
 }
 
 function check_md5() {
-  completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
-  CHECKSUM_FILE="${completedpath}${md5filename}"
+  local completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
+  local CHECKSUM_FILE="${completedpath}${md5filename}"
 
   echo "Checking ${CHECKSUM_FILE} ... "
 
@@ -178,8 +181,10 @@ function check_md5() {
    	return
   fi
 
-  cd "${completedpath}" && md5sum -c "${md5filename}" 2>&1 | grep -v ": OK"  | sed 's/^/    /g'
-  test_command_success "Could not check checksum file: ${CHECKSUM_FILE}"
+  cd "${completedpath}" && md5sum -c --quiet "${md5filename}"
+  if [ ${?} -ne 0 ]; then
+    echo "Failures occurred"
+  fi
   cd - > /dev/null
 }
 
@@ -209,8 +214,8 @@ function diff_md5() {
   echo "  New checksum file: ${2}"
   echo 
 
-  DIFF_FILE="${2}.diff"
-  DIFF_FILE_TMP="${2}.diff.tmp"
+  local DIFF_FILE="${2}.diff"
+  local DIFF_FILE_TMP="${2}.diff.tmp"
 
   if test -e "${DIFF_FILE}"; then
     echo "Removing old diff file: ${DIFF_FILE}"
@@ -229,18 +234,18 @@ function diff_md5() {
 
   #TODO: what do we do if diff has no output?
 
-  CHANGED_COUNTER=0
-  ADDED_COUNTER=0
-  DELETED_COUNTER=0
-  RENAMED_COUNTER=0
+  local CHANGED_COUNTER=0
+  local ADDED_COUNTER=0
+  local DELETED_COUNTER=0
+  local RENAMED_COUNTER=0
   
-  LAST_FILE_NAME=""
-  LAST_FILE_CHECKSUM=""
-  LAST_FILE_LINE=""
+  local LAST_FILE_NAME=""
+  local LAST_FILE_CHECKSUM=""
+  local LAST_FILE_LINE=""
   for FILE_LINE in `cat "${DIFF_FILE}"`; do
     # example input line: ./testfile0a.bin ### < b6eae282641b9f697834701afee923fb
-    FILE_NAME=`echo "${FILE_LINE}" | sed 's/\(.*\) ###.*/\1/'`
-    FILE_CHECKSUM=`echo "${FILE_LINE}" | sed 's/.*### . \(.*\)/\1/'`
+    local FILE_NAME=`echo "${FILE_LINE}" | sed 's/\(.*\) ###.*/\1/'`
+    local FILE_CHECKSUM=`echo "${FILE_LINE}" | sed 's/.*### . \(.*\)/\1/'`
     #echo "line: ${FILE_LINE}"
     #echo "current: (${FILE_NAME}) (${FILE_CHECKSUM})"    
     if test "${LAST_FILE_LINE}" = ""; then
@@ -279,8 +284,8 @@ function diff_md5() {
     LAST_FILE_CHECKSUM=""
     LAST_FILE_LINE=""
     for FILE_LINE in `cat "${DIFF_FILE}"`; do
-      FILE_NAME=`echo "${FILE_LINE}" | sed 's/.*### \(.*\) ###.*/\1/'`
-      FILE_CHECKSUM=`echo "${FILE_LINE}" | sed 's/\(.*\) ###.*###.*/\1/'`
+      local FILE_NAME=`echo "${FILE_LINE}" | sed 's/.*### \(.*\) ###.*/\1/'`
+      local FILE_CHECKSUM=`echo "${FILE_LINE}" | sed 's/\(.*\) ###.*###.*/\1/'`
       #echo "line: ${FILE_LINE}"
       #echo "current: (${FILE_NAME}) (${FILE_CHECKSUM})" 
       if test "${LAST_FILE_LINE}" = ""; then
@@ -295,7 +300,7 @@ function diff_md5() {
         LAST_FILE_LINE=""
       else
         # last file and this file's checksum don't match, it was added or deleted
-        DIFF_ARROW=`echo ${LAST_FILE_LINE} | sed 's/.*###.*### \(.\)./\1/'`      
+        local DIFF_ARROW=`echo ${LAST_FILE_LINE} | sed 's/.*###.*### \(.\)./\1/'`      
         #echo "arrow: (${DIFF_ARROW})"
         if test "${DIFF_ARROW}" = "<"; then        
           echo "Deleted: ${LAST_FILE_NAME}"
@@ -311,7 +316,7 @@ function diff_md5() {
     done # end for each line
 
     if test "${LAST_FILE_LINE}" != ""; then
-      DIFF_ARROW=`echo ${LAST_FILE_LINE} | sed 's/.*###.*### \(.\)./\1/'`      
+      local DIFF_ARROW=`echo ${LAST_FILE_LINE} | sed 's/.*###.*### \(.\)./\1/'`      
       #echo "arrow: (${DIFF_ARROW})"
       if test "${DIFF_ARROW}" = "<"; then
         echo "Deleted: ${LAST_FILE_NAME}"
@@ -333,7 +338,7 @@ function diff_md5() {
   echo "  Files Added: ${ADDED_COUNTER}"
   echo
 
-  COUNTER_CHECK="${CHANGED_COUNTER}${DELETED_COUNTER}"
+  local COUNTER_CHECK="${CHANGED_COUNTER}${DELETED_COUNTER}"
   if test "${COUNTER_CHECK}" = "00"; then
     echo "Comparison result: SUCCESS! 0 files were changed."
   else
@@ -345,8 +350,8 @@ function diff_md5() {
 
 # arg 1 is directory to update checksum in
 function update_md5 {  
-  completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
-  CHECKSUM_FILE="${completedpath}${md5filename}"
+  local completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
+  local CHECKSUM_FILE="${completedpath}${md5filename}"
   echo "Updating checksum file: ${CHECKSUM_FILE}"
   create_md5 "${1}"
   completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
@@ -359,8 +364,8 @@ function update_md5 {
 # arg 1 is directory to update checksum in
 # arg 2 is "true" if remove old checksum files
 function join_all_md5 {
-  completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
-  CHECKSUM_FILE="${completedpath}${md5filename}"
+  local completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
+  local CHECKSUM_FILE="${completedpath}${md5filename}"
 
   echo "Joining all checksum files to new file: ${CHECKSUM_FILE}"
   if test -e "${CHECKSUM_FILE}"; then
@@ -388,11 +393,11 @@ function join_all_md5 {
       # old entry: c88e535dc21882efa9175a276c2821ee *./blah.bin
       # new entry: c88e535dc21882efa9175a276c2821ee *./a/b/c/blah.bin
 
-      FIXED_RELATIVE_PATH="`dirname \"${FILE}\"`"      
+      local FIXED_RELATIVE_PATH="`dirname \"${FILE}\"`"      
       FIXED_RELATIVE_PATH=${FIXED_RELATIVE_PATH#$completedpath}
       for FILE_LINE in `cat ${FILE}`; do
-        FILE_CHECKSUM="`echo "${FILE_LINE}" | sed 's/\(.*\) \*\..*/\1/'`"
-        FILE_NAME="`echo "${FILE_LINE}" | sed 's/.* \*\.\(.*\)/\1/'`"
+        local FILE_CHECKSUM="`echo "${FILE_LINE}" | sed 's/\(.*\) \*\..*/\1/'`"
+        local FILE_NAME="`echo "${FILE_LINE}" | sed 's/.* \*\.\(.*\)/\1/'`"
         # echo "# was: ${FILE_LINE}" >> "${CHECKSUM_FILE}"
         echo "${FILE_CHECKSUM} *./${FIXED_RELATIVE_PATH}${FILE_NAME}" >> "${CHECKSUM_FILE}"
       done
@@ -414,23 +419,23 @@ function remove_all_md5 {
 
 function display_md5 {
   for FILE in `find "${1}" -type f -name "${md5filename}" | sort`; do
-    FILE_DIR=`dirname "${FILE}"`
-    DIR_SIZE=`du -h -d 0 "${FILE_DIR}" | sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]].*//'`
-    MD5_FOR_FILE=`md5sum "${FILE}" | sed -E 's/[[:space:]].*//'`
+    local FILE_DIR=`dirname "${FILE}"`
+    local DIR_SIZE=`du -h -d 0 "${FILE_DIR}" | sed -E 's/^[^[:digit:]]*//' | sed -E 's/[[:space:]].*//'`
+    local MD5_FOR_FILE=`md5sum "${FILE}" | sed -E 's/[[:space:]].*//'`
     echo "${FILE} [${DIR_SIZE}] ${MD5_FOR_FILE}" 
   done
 }
 
 # arg 1 is directory to run test in
 function run_test() {
-  TEST_DIR="${1}/md5tool-unittest"
+  local TEST_DIR="${1}/md5tool-unittest"
   echo "Running md5tool.sh Unit Test in directory: ${TEST_DIR}"
   if test -e "${TEST_DIR}"; then
     echo "Removing pre-exising test data."
     rm -Rf "${TEST_DIR}"
   fi
   mkdir -p "${TEST_DIR}"
-  COUNTER=0
+  local COUNTER=0
   while [ ${COUNTER} -lt 10 ]; do
     openssl rand 1048576 > "${TEST_DIR}/testfile${COUNTER}.bin"
     let COUNTER=COUNTER+1 
