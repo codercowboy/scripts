@@ -26,6 +26,7 @@ fi
 #  --modify-window = allow a mod time drive of N seconds, useful for fat32 with less precise mod-time storage
 #  -i = show the reason rsync is transfering the file
 #  -n = dry run (test mode)
+#  -l = copy symlinks
 
 # itemized changes output example:
 # >f..t.... file.txt

@@ -5,6 +5,12 @@ if [ "`type -t inspect_files`" = "function" ]; then
 	return 0
 fi
 
+function count_files {
+	# from: https://stackoverflow.com/questions/15216370/how-to-count-number-of-files-in-each-directory
+	du -a | cut -d/ -f2 | sort | uniq -c | sort -nr
+}
+export -f count_files
+
 function inspect_files {
 	if [ "${1}" = "" -o "${2}" = "" ]; then
         echo "USAGE: inspect_files [path] [output file prefix]"

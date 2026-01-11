@@ -127,8 +127,8 @@ function run_backup_job() {
 	md5tool.sh CREATE "${MY_USER_HOME}/Dropbox"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Dropbox/" "${TARGET_DIR}/Dropbox/"			
 
-	md5tool.sh CREATE "${MY_USER_HOME}/Documents/win98vm"
-	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Documents/win98vm/" "${TARGET_DIR}/win98vm/"		
+	md5tool.sh CREATE "${MY_USER_HOME}/Documents/win2k-86box"
+	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Documents/win2k-86box/" "${TARGET_DIR}/win2k-86box/"		
 
 	md5tool.sh CREATE "${MY_USER_HOME}/Library/Application Support/MobileSync"
 	my_rsync ${RSYNC_ARGS} "${MY_USER_HOME}/Library/Application Support/MobileSync/" "${TARGET_DIR}/MobileSync/"
@@ -190,27 +190,32 @@ function remove_file() {
 	if [ -e "${1}" ]; then
 		echo "Removing file: ${1}"
 		rm -Rf "${1}"
+	else
+		echo "Not removing file that does not exist: ${1}"
 	fi
 }
 
 if [ "${FLAG_BACKUP_CLEAN}" = "true" ]; then
 	echo "[Starting Clean Backup Step.]"
 
+	echo "+++ Removing 'target' directories from code"
 	for FILE in `find ${CODE} -type d -name target`; do
 		echo "Removing: ${FILE}"
 		rm -Rf "${FILE}"		
 	done
 
+	echo "+++ Removing 'node_modules' directories from code"
 	for FILE in `find ${CODE} -type d -name node_modules -d 3`; do
 		echo "Removing: ${FILE}"
 		rm -Rf "${FILE}"
 	done
 
+	echo "+++ Removing misc hyte directories from code"
 	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data.old"
 	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/log"
-	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/cfg/b"
-	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/sched"
-	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/data/hyte/v4/msg"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/src/test/resources/hyte-boot/data/hyte/v5/cfg/b"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/src/test/resources/hyte-boot/data/hyte/v5/sched"
+	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/src/test/resources/hyte-boot/data/hyte/v5/msg"
 	remove_file "${CONSOLE_HOME}/webapp-parent/webapp-itests/etc.old"
 	
 	echo "[Finished Clean Backup Step.]"
