@@ -284,7 +284,7 @@ if [ "${FLAG_BACKUP_LOCAL}" = "true" ]; then
 	if [ -e "${MY_USER_HOME}/Library/Application Support/Terraria" ]; then
 		my_rsync "${MY_USER_HOME}/Library/Application Support/Terraria" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
 	fi
-	if [ -e "${MY_USER_HOME}/Library/Application Support/factorio"]; then
+	if [ -e "${MY_USER_HOME}/Library/Application Support/factorio" ]; then
 		my_rsync "${MY_USER_HOME}/Library/Application Support/factorio" "${LOCAL_RSYNC_TARGET_DIR}/Games/"
 	fi
 

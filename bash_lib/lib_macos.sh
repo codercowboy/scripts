@@ -39,11 +39,6 @@ function terminal_tab_execute {
 }
 export -f terminal_tab_execute
 
-function thin_local_snapshots {
-	tmutil deletelocalsnapshots /	
-}
-export -f thin_local_snapshots
-
 function clean_dot_files {
 	if [ -z "${1}" ]; then
 		echo "USAGE: clean_dot_files [directory]"
@@ -103,3 +98,28 @@ function create_ramdisk {
 	return 0
 }
 export -f create_ramdisk
+
+# time machine tricks
+
+function tm_thin_local_snapshots {
+	tmutil deletelocalsnapshots /	
+}
+export -f tm_thin_local_snapshots
+
+function tm_show_logs {
+	log show --predicate 'subsystem == "com.apple.TimeMachine"' --info --last 24h
+}
+export -f tm_show_logs
+
+# reference: https://osxdaily.com/2016/04/17/speed-up-time-machine-by-removing-low-process-priority-throttling/
+function tm_fast_enable {
+	sudo sysctl debug.lowpri_throttle_enabled=0
+	echo "remember to 'tm_fast_disable' soon, to prevent system performance issues from other low-priority tasks"
+}
+export -f tm_fast_enable
+
+function tm_fast_disable {
+	sudo sysctl debug.lowpri_throttle_enabled=1
+}
+export -f tm_fast_disable
+
