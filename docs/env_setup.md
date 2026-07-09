@@ -21,7 +21,7 @@ INITIAL SETUP
   * Wipe hard drive, and turn disk encryption on
   * Install OS 
   * Install all system updates
-  * Genarl OS Settings Changes:
+  * General OS Settings Changes:
     * Settings -> Trackpad
       1. More Gestures tab -> turn everything off
       2. Point and click tab -> disable `force click`
@@ -39,15 +39,16 @@ INITIAL SETUP
       1. Show VPN in system bar: system settings -> menu bar -> check "VPN" box
       2. Battery -> scroll down to bottom, click `options` > check `prevent automatic sleeping on power adapter`
       3. Dock -> Fix location
-      4. Disable wifi/bluetooth if needed
-      5. Sounds -> Sound Effects Section at top -> disable `Play User Interface Sound Effects`
-      6. Security and Privacy -> Privacy Tab -> Full Disk Access -> Add Terminal
-      7. Fine tune notifications
-      8. Disable spotlight and siri and add external hard drives to spotlight ignore
-      9. Enable hidden files in finder with: `defaults write com.apple.finder AppleShowAllFiles YES`  
-      10. Add common apps to stick on dock
-      11. iMessage app -> settings -> uncheck `play sound effects` at bottom, and set message received sound to "none" 
-      12. Finder -> Select User folder (ie `jason`), top menu View -> Show View Options -> Check  `Always open in column mode`  and `resize columns to fit filenames`       
+      4. Dock -> Scroll down to 'windows' section -> toggle off "drag windows to the menu bar"
+      5. Disable wifi/bluetooth if needed
+      6. Sounds -> Sound Effects Section at top -> disable `Play User Interface Sound Effects`
+      7. Security and Privacy -> Privacy Tab -> Full Disk Access -> Add Terminal
+      8. Fine tune notifications
+      9. Disable spotlight and siri and add external hard drives to spotlight ignore
+      10. Enable hidden files in finder with: `defaults write com.apple.finder AppleShowAllFiles YES`  
+      11. Add common apps to stick on dock
+      12. iMessage app -> settings -> uncheck `play sound effects` at bottom, and set message received sound to "none" 
+      13. Finder -> Select User folder (ie `jason`), top menu View -> Show View Options -> Check  `Always open in column mode`  and `resize columns to fit filenames`       
     * Accounts / Devices
       1. Add Guest account
       2. Add VPN acounts
@@ -57,7 +58,10 @@ INITIAL SETUP
     1. terminal settings menu -> first tab (`general`) -> top `on startup open` -> new window with profile -> change to "Basic"
     2. terminal settings menu -> second tab (`profiles`) -> select `Basic` top left column, then click `Default` button at bottom of left column
     3. Change shell to bash in terminal: `chsh -s /bin/bash`      
+    4. Install open folder in terminal.
+       * http://lifehacker.com/launch-an-os-x-terminal-window-from-a-specific-folder-1466745514      
   * Restore system files from previous backup (jason ~/setupenv.sh, etc/hosts, etc/profile, etc/paths, ssh keys, and so on)
+    * etc/profile add: `source /Users/jason/setupenv.sh`
   * Install applications listed in apps list from previous backup
   * Setup garageband podcast audio routing (blackhole sound driver + aggregate device)
   * Developer stuff
@@ -72,8 +76,6 @@ INITIAL SETUP
   * Install open folder in stext finder plugin. 
     * copy to ~/Library/Services (from laptop backup "automator_services.zip" file in backup/misc).
     * System Preferences > Keyboard > Shortcuts > Services -> Expand Files and folder tree -> Enable "Open in Sublime Text"
-  * Install open folder in terminal.
-    * http://lifehacker.com/launch-an-os-x-terminal-window-from-a-specific-folder-1466745514      
   * Setup time machine:
     * https://support.apple.com/en-ca/guide/mac-help/mchl31533145/mac
     * Target mac: 
@@ -116,57 +118,57 @@ Old Stuff
  * file tabs are stored in: /usr/lib/cron/tabs
  * Run sudo crontab -e and add these lines:
 
-		MAILTO=jason@onejasonforsale.com
-		30 20 * * * bash /scripts/to_sales_reports/fetch_reports.sh
+    MAILTO=jason@onejasonforsale.com
+    30 20 * * * bash /scripts/to_sales_reports/fetch_reports.sh
 
 **/System/Library/LaunchDaemons/serverbackup.plist file contents:**
 
-		<?xml version="1.0" encoding="UTF-8"?>
-		<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
-		"http://www.apple.
-		com/DTDs/PropertyList-1.0.dtd">
-		<plist version="1.0">
-		<dict>  
-			<key>Label</key><string>serverbackup</string>
-			<key>ProgramArguments</key>
-			<array> 
-				<string>/archive/scripts/serverbackup.sh</string>
-			</array>
-			<key>WorkingDirectory</key><string>/archive/scripts</string>
-			<key>EnvironmentVariables</key>
-			<dict>
-				<key>PATH</key>
-				<string>/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/archive/scripts</string>
-			</dict>
-			<key>LowPriorityIO</key><true/>
-			<key>Nice</key><integer>1</integer>
-			<key>StartCalendarInterval</key>
-			<dict>  
-				<key>Hour</key><integer>4</integer>
-				<key>Minute</key><integer>10</integer>
-			</dict>
-			<key>StandardOutPath</key><string>/var/log/serverbackup.log</string>
-			<key>StandardErrorPath</key><string>/var/log/serverbackup.log</string>
-		</dict>
-		</plist>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+    "http://www.apple.
+    com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>  
+      <key>Label</key><string>serverbackup</string>
+      <key>ProgramArguments</key>
+      <array> 
+        <string>/archive/scripts/serverbackup.sh</string>
+      </array>
+      <key>WorkingDirectory</key><string>/archive/scripts</string>
+      <key>EnvironmentVariables</key>
+      <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/bin:/sbin:/usr/bin:/usr/sbin:/archive/scripts</string>
+      </dict>
+      <key>LowPriorityIO</key><true/>
+      <key>Nice</key><integer>1</integer>
+      <key>StartCalendarInterval</key>
+      <dict>  
+        <key>Hour</key><integer>4</integer>
+        <key>Minute</key><integer>10</integer>
+      </dict>
+      <key>StandardOutPath</key><string>/var/log/serverbackup.log</string>
+      <key>StandardErrorPath</key><string>/var/log/serverbackup.log</string>
+    </dict>
+    </plist>
 
 **autodiskmount.plist file contents:**
 
-		<?xml version="1.0" encoding="UTF-8"?>
-		<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" 
-		   "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-		<plist version="1.0">
-			<dict>
-			    <key>AutomountDisksWithoutUserLogin</key><true/>
-			</dict>
-		</plist>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" 
+       "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+      <dict>
+          <key>AutomountDisksWithoutUserLogin</key><true/>
+      </dict>
+    </plist>
 
 **/etc/daily.local file contents:**
 
-		#!/bin/bash
-		/scripts/systembackup.sh 2>&1 | tee -a /var/log/systembackup.log
+    #!/bin/bash
+    /scripts/systembackup.sh 2>&1 | tee -a /var/log/systembackup.log
 
 **/etc/weekly.local file contents:**
 
-		#!/bin/bash
-		/archive/scripts/osxrotatelogs.sh /var/log /archive/logs/locallogs/
+    #!/bin/bash
+    /archive/scripts/osxrotatelogs.sh /var/log /archive/logs/locallogs/

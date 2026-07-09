@@ -296,5 +296,20 @@ done
 IFS="${OLD_IFS}" # IMPORTANT!: don't forget to set IFS back to what it was before the loop!
 echo "end of loop"
 
+# export multiple functions:
+# export -f claude_start_vm claude_run_in_vm 
 
+# local variables inside bash functions
+# local MY_VARIABLE="${1}"
 
+# default values for variable (here we either use ${1} or default to "code session")
+# local CLAUDE_SESSION_NAME="${1:-"code session"}"
+
+# if function is defined: 
+# if [ "`type -t chrome_local_dev`" = "function" ]; then
+
+# execute a cmd in a dir without cd into it and store in variable ${REMOTE_REPO}
+# local REMOTE_REPO=$(cd "${SOURCE_DIR}" && git remote -v | grep push | awk '{print $2}')
+
+# execute a cmd in a dir without cd into it (not storing in variable)
+# (cd "${SOURCE_DIR}" && git remote -v | grep push | awk '{print $2}')
