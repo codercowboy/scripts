@@ -12,6 +12,9 @@
 #
 # UPDATES:
 #
+# 2026/07/09
+#  - Minor script modernization changes
+#
 # 2021/6/14
 #  - Initial version
 #
@@ -45,7 +48,7 @@
 ########################################################################
 
 #arg 1 is error
-function print_usage() {
+function print_usage {
 	echo "USAGE: splitfiles.sh [operation] [arguments] [file or directory]"
 	echo ""
 	echo "OPERATIONS:"
@@ -77,7 +80,7 @@ function print_usage() {
 
 #arg 1 = size, ie 2m for two megabytes
 #arg 2 = file
-function split_file() {
+function split_file {
 	# -b is byte count, first arg is file to split, second arg is prefix of split files
 	if [ -e "${2}.part.aa" ]; then
 		echo "Not splitting file, it has already been split: ${2}"
@@ -100,7 +103,7 @@ function split_file() {
 
 #arg 1 = original file name
 #arg 2 = output file name
-function join_file() {		
+function join_file {		
 	if [ ! -e "${1}.part.aa" ]; then
 		echo "Could not find parts to join for file: ${1}"
 		return
@@ -117,7 +120,7 @@ function join_file() {
 
 # arg 1 = directory to search
 # arg 2 = suffix to add to original filename (ie "joined" )
-function join_files() {
+function join_files {
 	local SUFFIX=".${2}"
 	if [ "." = "${SUFFIX}" ]; then
 		SUFFIX=""
@@ -133,12 +136,12 @@ function join_files() {
 }
 
 # arg 1 = file
-function get_checksum() {
+function get_checksum {
 	md5sum "${1}"| sed 's/ .*//'
 }
 
 # arg 1 is directory to run test in
-function run_test() {
+function run_test {
 	echo "starting test"
 	local TMP_DIR="${1}/${RANDOM}"
 	
@@ -188,7 +191,6 @@ function run_test() {
 	echo "BIG_FILE_CHECKSUM: ${BIG_FILE_CHECKSUM}"
 	echo "BIG_FILE_JOINED_CHECKSUM: ${BIG_FILE_JOINED_CHECKSUM}"
 
-	
 	if [ "${BIG_FILE_CHECKSUM}" != "${BIG_FILE_JOINED_CHECKSUM}" ]; then
 		echo "TEST FAILED: Big file checksums do not match."
 		local TEST_SUCCESS="false"

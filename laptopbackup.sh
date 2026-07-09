@@ -99,14 +99,14 @@ else
 	exit 1
 fi
 
-function my_rsync() {
+function my_rsync {
 	rsync -vrthW --del --stats --progress --chmod=u=rwx "${@}"
 }
 
 #make for's argument seperator newline only
 IFS=$'\n'
 
-function run_backup_job() {
+function run_backup_job {
 	local TARGET_DIR="${1}"
 	local RSYNC_ARGS="${2}"
 
@@ -140,7 +140,7 @@ function run_backup_job() {
 }
 
 # arg 1 is target drive
-function backup_music() {
+function backup_music {
 	local TARGET_MUSIC_FOLDER=""
 
 	if [ ! -e "${LOCAL_MUSIC_FOLDER}" ]; then
@@ -165,7 +165,7 @@ function backup_music() {
 	echo "[Finished Backing up music]"
 }
 
-if test ${FLAG_BACKUP_USB} = "true"; then
+if [ ${FLAG_BACKUP_USB} = "true" ]; then
 	echo "[Starting USB Backup Step.]"
 	USB_DEST=""
 	for FILE in `find /Volumes -name "USB*" -maxdepth 1`; do
@@ -188,7 +188,7 @@ if test ${FLAG_BACKUP_USB} = "true"; then
 fi #end usb dest selection section
 
 # arg 1 is file
-function remove_file() {
+function remove_file {
 	if [ -e "${1}" ]; then
 		echo "Removing file: ${1}"
 		rm -Rf "${1}"

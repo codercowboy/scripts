@@ -45,8 +45,7 @@
 ########################################################################
 
 
-function print_usage()
-{
+function print_usage {
 	echo "fp.sh - file detail printing utilities"
 	echo
 	echo "USAGE"

@@ -45,8 +45,7 @@
 #
 ########################################################################
 
-
-function print_usage() {
+function print_usage {
 	echo "keepraws.sh - remove RAW (NEF/ARW) files that don't have matching JPG/jpegs"
 	echo
 	echo "USAGE"
@@ -61,7 +60,6 @@ function print_usage() {
 	echo "  ERROR: $1"
 	exit 1
 }
-
 
 if  [ -z "$1" ]; then
 	print_usage "Invalid arguments specified."
@@ -91,12 +89,12 @@ fi
 IFS=$'\n'
 
 for RAW_FILE in $RAW_FILES; do
-	FILE_BASENAME=`basename "${RAW_FILE}" | sed 's/.NEF//' | sed 's/.ARW//'`
+	local FILE_BASENAME=`basename "${RAW_FILE}" | sed 's/.NEF//' | sed 's/.ARW//'`
 	#echo "Now processing RAW file: ${RAW_FILE}, basename: ${FILE_BASENAME}"
 
-	MATCHING_JPG_FILES="`echo "${JPG_FILES}" | grep ${FILE_BASENAME}`"
+	local MATCHING_JPG_FILES="`echo "${JPG_FILES}" | grep ${FILE_BASENAME}`"
 	# tr command here removes all whitespace
-	MATCHING_JPG_FILE_COUNT="`echo "${MATCHING_JPG_FILES}" | wc -l | tr -d '[[:space:]]'`"
+	local MATCHING_JPG_FILE_COUNT="`echo "${MATCHING_JPG_FILES}" | wc -l | tr -d '[[:space:]]'`"
 	if [ -z "${MATCHING_JPG_FILES}" ]; then
 		MATCHING_JPG_FILE_COUNT="0"
 	fi
@@ -108,7 +106,7 @@ for RAW_FILE in $RAW_FILES; do
 		echo "Keeping ${RAW_FILE}, jpg exists: ${MATCHING_JPG_FILES}"
 		((KEPT_FILE_COUNTER=KEPT_FILE_COUNTER + 1))
 	elif [ "0" = "${MATCHING_JPG_FILE_COUNT}" ]; then
-		TARGET="${REMOVED_DIR}/${RAW_FILE}"
+		local TARGET="${REMOVED_DIR}/${RAW_FILE}"
 		echo "Removing ${RAW_FILE}, no jpg exists, moving it to: ${TARGET}"
 		mv "${RAW_FILE}" "${TARGET}"
 		((REMOVED_FILE_COUNTER=REMOVED_FILE_COUNTER + 1))

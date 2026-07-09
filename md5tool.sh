@@ -12,6 +12,9 @@
 #
 # UPDATES:
 # 
+# 2026/07/09
+#  - Minor script modernization changes
+# 
 # 2025/08/29
 # - Fix output issues with newer md5sum
 #
@@ -96,7 +99,7 @@ exitstatus=0
 #make for's argument seperator newline only
 IFS=$'\n'
 
-function print_usage() {
+function print_usage {
   echo "md5tool.sh helps maintain file integrity through md5 digest files"
   echo
   echo "USAGE"
@@ -119,24 +122,24 @@ function print_usage() {
   print_error "$1"
 }
 
-function print_error() {
+function print_error {
 	echo
 	echo "ERROR: $1"
 	echo
 	exit 1
 }
 
-function test_command_success() {
-	if test $? -ne 0; then
-		print_error "$1"
+function test_command_success {
+	if [ ${?} -ne 0 ]; then
+		print_error "${1}"
 	fi
 }
 
-function create_md5() {
+function create_md5 {
   local completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
   local CHECKSUM_FILE="${completedpath}${md5filename}"
 
-  if test -e "${CHECKSUM_FILE}"; then
+  if [ -e "${CHECKSUM_FILE}" ]; then
     echo "Removing Old ${CHECKSUM_FILE}"
     rm "${CHECKSUM_FILE}"
     test_command_success "Could not remove old checksum file: ${CHECKSUM_FILE}"
@@ -147,35 +150,35 @@ function create_md5() {
   touch "${CHECKSUM_FILE}"
   test_command_success "Could not create checksum file: ${CHECKSUM_FILE}"
 
-  if test ! -w "${CHECKSUM_FILE}"; then
+  if [ ! -w "${CHECKSUM_FILE}" ]; then
   	print_usage "Cannot write to checksum file: ${CHECKSUM_FILE}"
   fi
 
-  cd "$completedpath" && find . -type f -print0 | xargs -0 md5sum -b | grep -v "${md5filename}" >> "${md5filename}"
+  (cd "$completedpath" && find . -type f -print0 | xargs -0 md5sum -b | grep -v "${md5filename}" >> "${md5filename}")
   test_command_success "Could not create checksum file: ${CHECKSUM_FILE}"
-  cd - > /dev/null
+
   local CHECKSUM_FOR_FILE=$(md5sum "${completedpath}${md5filename}")
   echo "${CHECKSUM_FOR_FILE}"  
 }
 
-function create_md5_for_each_subdirectory() {
+function create_md5_for_each_subdirectory {
 	local SUBDIRECTORIES=`find "$1" -maxdepth 1 -mindepth 1 -type d`
 	for SUBDIRECTORY in ${SUBDIRECTORIES}; do
 		create_md5 "${SUBDIRECTORY}"
 	done
 }
 
-function check_md5() {
+function check_md5 {
   local completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
   local CHECKSUM_FILE="${completedpath}${md5filename}"
 
   echo "Checking ${CHECKSUM_FILE} ... "
 
-  if test ! -e "${CHECKSUM_FILE}"; then
+  if [ ! -e "${CHECKSUM_FILE}" ]; then
   	echo "Checksum file does not exist: ${CHECKSUM_FILE}"
     exitstatus=1
     return
-  elif test ! -r "${CHECKSUM_FILE}"; then
+  elif [ ! -r "${CHECKSUM_FILE}" ]; then
   	echo "Checksum file is not readable: ${CHECKSUM_FILE}"
    	exitstatus=1
    	return
@@ -196,13 +199,13 @@ function check_all_md5() {
 
 # arg 1 old md5 file
 # arg 2 is new md5 file
-function diff_md5() {
-  if test ! -r "${1}"; then
+function diff_md5 {
+  if [ ! -r "${1}" ]; then
     echo "Cannot compare md5 files, checksum file does not exist, or is not readable: (${1})"
     exitstatus=1
     return
   fi
-  if test ! -r "${2}"; then
+  if [ ! -r "${2}" ]; then
     echo "Cannot compare md5 files, checksum file does not exist, or is not readable: (${2})"
     exitstatus=1
     return
@@ -217,12 +220,12 @@ function diff_md5() {
   local DIFF_FILE="${2}.diff"
   local DIFF_FILE_TMP="${2}.diff.tmp"
 
-  if test -e "${DIFF_FILE}"; then
+  if [ -e "${DIFF_FILE}" ]; then
     echo "Removing old diff file: ${DIFF_FILE}"
     rm "${DIFF_FILE}"
   fi
 
-  if test -e "${DIFF_FILE_TMP}"; then
+  if [ -e "${DIFF_FILE_TMP}" ]; then
     echo "Removing old diff file: ${DIFF_FILE_TMP}"
     rm "${DIFF_FILE_TMP}"
   fi
@@ -248,12 +251,12 @@ function diff_md5() {
     local FILE_CHECKSUM=`echo "${FILE_LINE}" | sed 's/.*### . \(.*\)/\1/'`
     #echo "line: ${FILE_LINE}"
     #echo "current: (${FILE_NAME}) (${FILE_CHECKSUM})"    
-    if test "${LAST_FILE_LINE}" = ""; then
+    if [ "${LAST_FILE_LINE}" = "" ]; then
       # last file not hung onto, hang on to this round
       LAST_FILE_NAME="${FILE_NAME}"
       LAST_FILE_CHECKSUM="${FILE_CHECKSUM}"
       LAST_FILE_LINE="${FILE_LINE}"
-    elif test "${LAST_FILE_NAME}" = "${FILE_NAME}"; then
+    elif [ "${LAST_FILE_NAME}" = "${FILE_NAME}" ]; then
       # last file and this file match name, checksum changed
       echo "Changed ${FILE_NAME} (checksum: ${LAST_FILE_CHECKSUM} to ${FILE_CHECKSUM})" 
       let CHANGED_COUNTER=CHANGED_COUNTER+1 
@@ -268,11 +271,11 @@ function diff_md5() {
   done
 
   #save last line it it wasnt handled
-  if test "${LAST_FILE_LINE}" != ""; then
+  if [ "${LAST_FILE_LINE}" != "" ]; then
     echo "${LAST_FILE_LINE}" >> "${DIFF_FILE_TMP}"
   fi  
 
-  if test -e "${DIFF_FILE_TMP}"; then 
+  if [ -e "${DIFF_FILE_TMP}" ]; then 
     # reformat saved lines from original diff to be checksum first
     # example line before: ./testfile0a.bin ### < b6eae282641b9f697834701afee923fb
     # example line after: b6eae282641b9f697834701afee923fb ### ./testfile0a.bin ### < 
@@ -288,12 +291,12 @@ function diff_md5() {
       local FILE_CHECKSUM=`echo "${FILE_LINE}" | sed 's/\(.*\) ###.*###.*/\1/'`
       #echo "line: ${FILE_LINE}"
       #echo "current: (${FILE_NAME}) (${FILE_CHECKSUM})" 
-      if test "${LAST_FILE_LINE}" = ""; then
+      if [ "${LAST_FILE_LINE}" = "" ]; then
         # last file not hung onto, hang on to this one
         LAST_FILE_NAME="${FILE_NAME}"
         LAST_FILE_CHECKSUM="${FILE_CHECKSUM}"
         LAST_FILE_LINE="${FILE_LINE}"
-      elif test "${LAST_FILE_CHECKSUM}" = "${FILE_CHECKSUM}"; then
+      elif [ "${LAST_FILE_CHECKSUM}" = "${FILE_CHECKSUM}" ]; then
         # last file and this file match name, file name changed
         echo "Renamed: ${FILE_NAME} (from: ${LAST_FILE_NAME})"
         let RENAMED_COUNTER=RENAMED_COUNTER+1 
@@ -302,7 +305,7 @@ function diff_md5() {
         # last file and this file's checksum don't match, it was added or deleted
         local DIFF_ARROW=`echo ${LAST_FILE_LINE} | sed 's/.*###.*### \(.\)./\1/'`      
         #echo "arrow: (${DIFF_ARROW})"
-        if test "${DIFF_ARROW}" = "<"; then        
+        if [ "${DIFF_ARROW}" = "<" ]; then        
           echo "Deleted: ${LAST_FILE_NAME}"
           let DELETED_COUNTER=DELETED_COUNTER+1 
         else
@@ -315,10 +318,10 @@ function diff_md5() {
       fi
     done # end for each line
 
-    if test "${LAST_FILE_LINE}" != ""; then
+    if [ "${LAST_FILE_LINE}" != "" ]; then
       local DIFF_ARROW=`echo ${LAST_FILE_LINE} | sed 's/.*###.*### \(.\)./\1/'`      
       #echo "arrow: (${DIFF_ARROW})"
-      if test "${DIFF_ARROW}" = "<"; then
+      if [ "${DIFF_ARROW}" = "<" ]; then
         echo "Deleted: ${LAST_FILE_NAME}"
         let DELETED_COUNTER=DELETED_COUNTER+1 
       else
@@ -339,7 +342,7 @@ function diff_md5() {
   echo
 
   local COUNTER_CHECK="${CHANGED_COUNTER}${DELETED_COUNTER}"
-  if test "${COUNTER_CHECK}" = "00"; then
+  if [ "${COUNTER_CHECK}" = "00" ]; then
     echo "Comparison result: SUCCESS! 0 files were changed."
   else
     let SUM=CHANGED_COUNTER+DELETED_COUNTER
@@ -356,7 +359,7 @@ function update_md5 {
   create_md5 "${1}"
   completedpath="${1%*/}/" #this will put a / on the end of the path if there isnt one already
   CHECKSUM_FILE="${completedpath}${md5filename}"
-  if test "${exitstatus}" = "0"; then    
+  if [ "${exitstatus}" = "0" ]; then    
     diff_md5 "${CHECKSUM_FILE}.old" "${CHECKSUM_FILE}"  
   fi
 }
@@ -368,7 +371,7 @@ function join_all_md5 {
   local CHECKSUM_FILE="${completedpath}${md5filename}"
 
   echo "Joining all checksum files to new file: ${CHECKSUM_FILE}"
-  if test -e "${CHECKSUM_FILE}"; then
+  if [ -e "${CHECKSUM_FILE}" ]; then
     echo "Renaming Old ${CHECKSUM_FILE} to ${CHECKSUM_FILE}.old"
     mv "${CHECKSUM_FILE}" "${CHECKSUM_FILE}.old"
     test_command_success "Could not remove old checksum file: ${CHECKSUM_FILE}"
@@ -377,10 +380,10 @@ function join_all_md5 {
   touch "${CHECKSUM_FILE}"
 
   for FILE in `find "${1}" -type f -name "${md5filename}" | sort`; do
-    if test "${CHECKSUM_FILE}" = "${FILE}"; then
+    if [ "${CHECKSUM_FILE}" = "${FILE}" ]; then
       continue;
     fi
-    if test "`basename \"${FILE}\"`" != "${md5filename}.old"; then
+    if [ "`basename \"${FILE}\"`" != "${md5filename}.old" ]; then
       echo "Adding: ${FILE}"
       echo "# checksums originally from: ${FILE}" >> "${CHECKSUM_FILE}"
 
@@ -402,7 +405,7 @@ function join_all_md5 {
         echo "${FILE_CHECKSUM} *./${FIXED_RELATIVE_PATH}${FILE_NAME}" >> "${CHECKSUM_FILE}"
       done
     fi
-    if test "${2}" = "true"; then
+    if [ "${2}" = "true" ]; then
       echo "Removing: ${FILE}"
       rm "${FILE}"
     fi
@@ -430,7 +433,7 @@ function display_md5 {
 function run_test() {
   local TEST_DIR="${1}/md5tool-unittest"
   echo "Running md5tool.sh Unit Test in directory: ${TEST_DIR}"
-  if test -e "${TEST_DIR}"; then
+  if [ -e "${TEST_DIR}" ]; then
     echo "Removing pre-exising test data."
     rm -Rf "${TEST_DIR}"
   fi
@@ -491,37 +494,36 @@ function run_test() {
   md5tool.sh REMOVEALL "${TEST_DIR}"
 }
 
-
-if test -z "$1" -o -z "$2"; then
-  print_usage "Invalid arguments specified: operation: \"$1\" path: \"$2\""
+if [ -z "${1}" -o -z "${2}" ]; then
+  print_usage "Invalid arguments specified: operation: '${1}' path: '${2}'"
 fi
 
-if test "$1" = "CREATE"; then
-  create_md5 "$2"
-elif test "$1" = "CREATEFOREACH"; then
-  create_md5_for_each_subdirectory "$2"  
-elif test "$1" = "CHECK"; then
-  check_md5 "$2"
-elif test "$1" = "CHECKALL"; then
-  check_all_md5 "$2"
-elif test "$1" = "UNITTEST"; then
-  run_test "$2"
-#elif test "$1" = "UPDATE"; then
-#  update_md5 "$2"
-elif test "$1" = "JOINALL"; then
-  join_all_md5 "$2" "false"
-elif test "$1" = "JOINALLREMOVEOLD"; then
-  join_all_md5 "$2" "true"
-elif test "$1" = "REMOVEALL"; then
-  remove_all_md5 "$2"
-elif test "$1" = "DISPLAY"; then
-  display_md5 "$2"
+if [ "${1}" = "CREATE" ]; then
+  create_md5 "${2}"
+elif [ "${1}" = "CREATEFOREACH" ]; then
+  create_md5_for_each_subdirectory "${2}"  
+elif [ "${1}" = "CHECK" ]; then
+  check_md5 "${2}"
+elif [ "${1}" = "CHECKALL" ]; then
+  check_all_md5 "${2}"
+elif [ "${1}" = "UNITTEST" ]; then
+  run_test "${2}"
+#elif test "${1}" = "UPDATE"; then
+#  update_md5 "${2}"
+elif [ "${1}" = "JOINALL" ]; then
+  join_all_md5 "${2}" "false"
+elif [ "${1}" = "JOINALLREMOVEOLD" ]; then
+  join_all_md5 "${2}" "true"
+elif [ "${1}" = "REMOVEALL" ]; then
+  remove_all_md5 "${2}"
+elif [ "${1}" = "DISPLAY" ]; then
+  display_md5 "${2}"
 else
   #unknown operation specified
-  print_usage "Unknown operation: \"$1\""
+  print_usage "Unknown operation: '${1}'"
 fi
 
-if test $exitstatus -ne 0; then
+if [ ${exitstatus} -ne 0 ]; then
 	echo
 	echo "ERRORS OCCURRED."
 	echo

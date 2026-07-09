@@ -5,34 +5,19 @@ if [ "`type -t stage_git_file_fn`" = "function" ]; then
 	return 0
 fi
 
+export GIT_COMMIT_SCRATCH_DIR="${HOME}/Documents/code/git-scratch"
+export GIT_COMMIT_PARENT_DIR="${GIT_COMMIT_SCRATCH_DIR}/commit"
+export GIT_CLEAN_CHECKOUT_PARENT_DIR="${GIT_COMMIT_SCRATCH_DIR}/clean"
+
 function git_help() {
 	echo "Shortcuts"
 	echo "  gitlog - show git log in pretty format"
 	echo "  git_pull_force_overwrite - hard update current branch from remote, discarding current work"
 	echo "  git_get_branch - shows current branch"
 	echo "  git_list_remote_branches - list remote branches"
-	echo
-	echo "Commit process"
-	echo "  1. git-backup - backup current work folder, runs 'mvn clean', then zips"
-	echo "  2. prep_commit - recreate clean commit staging folder, updating to latest, auto staging commits from current work"
-	echo "     2a. stage_commit_files - stage all changes from current work to exiting commit staging folder"
-	echo "     2b. stage_git_file - stage one file from current work to existing commit staging folder"
-	echo "  3. Rebase if needed: git rebase -i <target branch>"
-	echo "  4. Review changes in sourcetree, commit and push to origin"
-	echo "  3. Check status, back in working dir: run 'git_update' OR:"
-	echo "     3a. git add * && git stash - save current work"
-	echo "     3b. git fetch --all prune - fetch from remote"
-	echo "     3c. git_pull_force_overwrite - force update current branch from remote"
-	echo "     3d. git stash pop - check that desired work was pushed to remote branch"
-	echo "     3e. repeat process from beginning if work needs to be added to remote"
-	echo
-	echo "Rebasing process"
-	echo "  1. prep_commit - create clean commit folder"
-	echo "  2. in commit folder: git_pull_force_overwrite - discard any changes"
-	echo "  3. in commit folder: git_list_remote_branches list remote branches "
-	echo "  4. checkout desired branch: git checkout <branch>"
-	echo "  5. rebase branch to some other branch: git rebase -i origin/5.16.maint"
-	echo "  6. force push rebased stuff: git push origin <current branch> -f"	
+	echo "  git_config_verify - verify config"
+	echo "  git_show_remotes - show remotes"
+	echo "  git_show_remote_url - show remote url (assumes single remote)"
 	echo
 	echo "Tips:"
 	echo "  Rebase to root: git rebase -i --root"
@@ -52,102 +37,89 @@ alias git_pull_force_overwrite='git reset --hard @{upstream}'
 alias git_log_for_merge="git log --date-order --reverse --no-merges --abbrev-commit --date=short --format=\"%h - %s [%cn :: %cI]%n%n%b\" ${@}"
 alias git_get_branch="git branch --show-current"
 alias git_list_remote_branches="git branch -r"
+alias git_config_verify="git config -l"
+alias git_show_remotes="git remote -v"
+alias git_show_remote_url="git ls-remote --get-url"
 
-# arg 1 = mode, one of 'console', 'portal', 'docs'
+# arg 1 = source dir to stage from
 # arg 2 = file to stage
-function stage_git_file() {
-	if [ "console" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/console-commit"
-		local SOURCE_DIR="${CODE}/hyte/console-active"
-	elif [ "portal" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
-		local SOURCE_DIR="${CODE}/hyte/portal-active"
-	elif [ "docs" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
-		local SOURCE_DIR="${CODE}/hyte/docs-active"
-	else
-		echo "USAGE: stage_git_file [MODE] [FILE]"
-		echo ""
-		echo "MODE options: console, portal, docs"
-		return 1
-	fi	
-
-	local FILE="${2}"
-	if [ ! -e "${COMMIT_DIR}" ]; then
-		echo "Error, commit dir '${COMMIT_DIR}' does not exist."
-		return 1
-	elif [ ! -e "${SOURCE_DIR}" ]; then
-		echo "Error, source dir '${SOURCE_DIR}' does not exist."
-		return 1
-	elif [ "" = "${FILE}" ]; then
-		echo "Error, no file specified."
+function git_stage_commit_file() {
+	if [ -z "${1}" -o -z "${2}" ]; then
+		echo "USAGE: git_stage_commit_file [SOURCE_DIR] [FILE_TO_STAGE]"
 		return 1
 	fi
+
+	local SOURCE_DIR="${1}"
+	local FILE_TO_STAGE="${2}"	
+	if [ ! -d "${SOURCE_DIR}" ]; then
+		echo "ERROR: Cannot stage file, source dir doesn't exist: ${SOURCE_DIR}"
+		return 1
+	elif [ ! -e "${SOURCE_DIR}/${FILE_TO_STAGE}" ]; then
+		echo "ERROR: Cannot stage file, file to stage doesnt exist: ${FILE_TO_STAGE}"
+		return 1
+	fi
+
+	local SOURCE_DIR_BASENAME="$(cd "${SOURCE_DIR}" && basename `pwd -P`)"
+	local COMMIT_DIR="${GIT_COMMIT_PARENT_DIR}/${SOURCE_DIR_BASENAME}-commit"
 
 	# if a file has a $ in it (like wicket html files), replace those with '?'
-	FILE="${FILE/$/?}"
+	FILE_TO_STAGE="${FILE_TO_STAGE/$/?}"
 
-	local PARENT_DIR=`dirname "${FILE}"`
-
-	if [ ! -d "${COMMIT_DIR}/${PARENT_DIR}" ]; then
-		echo "Creating parent dir: ${COMMIT_DIR}/${PARENT_DIR}"
-		mkdir -p "${COMMIT_DIR}/${PARENT_DIR}"
+	local FILE_PARENT_DIR=`dirname "${FILE_TO_STAGE}"`
+	if [ ! -d "${COMMIT_DIR}/${FILE_PARENT_DIR}" ]; then
+		echo "Creating parent commit dir: ${COMMIT_DIR}/${FILE_PARENT_DIR}"
+		mkdir -p "${COMMIT_DIR}/${FILE_PARENT_DIR}"
 	fi
 
-	if [ -d "${SOURCE_DIR}/${FILE}" ]; then
-		echo "Now copying dir: ${FILE}"
-		local TARGET_DIR=`dirname "${COMMIT_DIR}/${FILE}"`
+	if [ -d "${SOURCE_DIR}/${FILE_TO_STAGE}" ]; then
+		echo "Now copying dir: ${FILE_TO_STAGE}"
+		local TARGET_DIR=`dirname "${COMMIT_DIR}/${FILE_TO_STAGE}"`
 		echo "TARGET_DIR: ${TARGET_DIR}"
-		local SOURCE_FILE=`basename "${FILE}"`
-		local SOURCE=`dirname "${SOURCE_DIR}/${FILE}"`
+		local SOURCE_FILE=`basename "${FILE_TO_STAGE}"`
+		local SOURCE=`dirname "${SOURCE_DIR}/${FILE_TO_STAGE}"`
 		SOURCE="${SOURCE}/${SOURCE_FILE}"
 		echo "SOURCE: ${SOURCE}"
 		cp -r "${SOURCE}" "${TARGET_DIR}"			
 	else
-		echo "Now copying file: ${FILE}"
-		FILE=`basename "${FILE}"`
-		cd "${SOURCE_DIR}/${PARENT_DIR}" && cp ${FILE} "${COMMIT_DIR}/${PARENT_DIR}/"
+		echo "Now copying file: ${FILE_TO_STAGE}"
+		FILE_TO_STAGE=`basename "${FILE_TO_STAGE}"`
+		(cd "${SOURCE_DIR}/${FILE_PARENT_DIR}" && cp ${FILE} "${COMMIT_DIR}/${PARENT_DIR}/")
 	fi
 
 	return 0
 }
-export -f stage_git_file
+export -f git_stage_commit_file
 
-# arg 1 = mode, one of 'console', 'portal', 'docs'
-function stage_commit_files() {
-	if [ "console" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/console-commit"
-		local SOURCE_DIR="${CODE}/hyte/console-active"
-	elif [ "portal" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
-		local SOURCE_DIR="${CODE}/hyte/portal-active"
-	elif [ "docs" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
-		local SOURCE_DIR="${CODE}/hyte/docs-active"
-	else
-		echo "USAGE: stage_commit_files [MODE]"
-		echo ""
-		echo "MODE options: console, portal, docs"
-		return 1
-	fi	
+# arg 1 = source dir to stage from
+function git_stage_commit_files() {
+	if [ -z "${1}" ]; then
+		echo "USAGE: git_stage_commit_files [SOURCE_DIR]"
+		return
+	fi
+
+	local SOURCE_DIR="${1}"
+	if [ ! -d "${SOURCE_DIR}" ]; then
+		echo "ERROR: Cannot stage commit files, source dir doesn't exist: ${SOURCE_DIR}"
+		return
+	fi
+
+	local SOURCE_DIR_BASENAME="$(cd "${SOURCE_DIR}" && basename `pwd -P`)"
+	local COMMIT_DIR="${GIT_COMMIT_PARENT_DIR}/${SOURCE_DIR_BASENAME}-commit"
 
 	local OLD_PWD=`pwd -P`
 
-	if [ ! -e "${COMMIT_DIR}" ]; then
-		echo "Error, commit dir '${COMMIT_DIR}' does not exist."
-		return 1
-	elif [ ! -e "${SOURCE_DIR}" ]; then
-		echo "Error, source dir '${SOURCE_DIR}' does not exist."
-		return 1
+	if [ ! -d "${COMMIT_DIR}" ]; then
+		echo "Creating commit dir: ${COMMIT_DIR}"
+		mkdir -p "${COMMIT_DIR}"
 	fi
 
 	#make for's argument seperator newline only
 	local oIFS=${IFS}
 	IFS=$'\n'
 
-	echo "Staging files from source dir to commit dir"
+	echo "Staging files from ${SOURCE_DIR} to ${COMMIT_DIR}"
 
-	cd "${SOURCE_DIR}" && git add *
+	(cd "${SOURCE_DIR}" && git add *)
 
 	FILES=`cd "${SOURCE_DIR}" && git status -s`
 	for STATUS_LINE in ${FILES}; do		
@@ -166,43 +138,76 @@ function stage_commit_files() {
 			local NEW_FILE=`echo "${FILE}" | sed 's/.*->.//'`
 			echo "Now moving file or dir: ${ORIGINAL_FILE} -> ${NEW_FILE}"
 			git mv "${COMMIT_DIR}/${ORIGINAL_FILE}" "${COMMIT_DIR}/${NEW_FILE}"
-			stage_git_file "${1}" "${NEW_FILE}"
+			stage_git_file "${SOURCE_DIR}" "${NEW_FILE}"
 		elif [ "${GIT_OPERATION}" = "A" ]; then
-			stage_git_file "${1}" "${FILE}"
+			stage_git_file "${SOURCE_DIR}" "${FILE}"
 		elif [ "${GIT_OPERATION}" = "M" ]; then
-			stage_git_file "${1}" "${FILE}"
+			stage_git_file "${SOURCE_DIR}" "${FILE}"
 		else
 			echo "Unsupported git operation '${GIT_OPERATION}', line: ${STATUS_LINE}"
 			return 1
 		fi			
 	done
 	IFS=${oIFS}
-	cd "${OLD_PWD}"
 
 	return 0
 }
-export -f stage_commit_files
+export -f git_stage_commit_files
 
-# arg 1 = mode, one of 'console', 'portal', 'docs'
-function prep_commit {	
-	if [ "console" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/console-commit"
-		local CLEAN_DIR="${CODE}/hyte/commit/clean/console"
-		local SOURCE_DIR="${CODE}/hyte/console-active"
-	elif [ "portal" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/portal-commit"
-		local CLEAN_DIR="${CODE}/hyte/commit/clean/portal"
-		local SOURCE_DIR="${CODE}/hyte/portal-active"
-	elif [ "docs" = "${1}" ]; then
-		local COMMIT_DIR="${CODE}/hyte/commit/docs-commit"
-		local CLEAN_DIR="${CODE}/hyte/commit/clean/docs"
-		local SOURCE_DIR="${CODE}/hyte/docs-active"
-	else
-		echo "USAGE: prep_commit [MODE]"
-		echo ""
-		echo "MODE options: console, portal, docs"
-		return 1
-	fi	
+# arg 1 = source dir to stage from
+function git_create_clean_repo {
+	if [ -z "${1}" ]; then
+		echo "USAGE: git_prep_commit [SOURCE_DIR]"
+		return
+	fi
+
+	local SOURCE_DIR="${1}"
+	if [ ! -d "${SOURCE_DIR}" ]; then
+		echo "ERROR: Cannot create clean repo, source dir doesn't exist: ${SOURCE_DIR}"
+		return
+	fi
+
+	local SOURCE_DIR_BASENAME="$(cd "${SOURCE_DIR}" && basename `pwd -P`)"
+	local CLEAN_DIR="${GIT_CLEAN_CHECKOUT_PARENT_DIR}/${SOURCE_DIR_BASENAME}-clean"
+
+	echo "Clean repo checkout dir: ${CLEAN_DIR}"
+
+	if [ ! -d "${CLEAN_DIR}" ]; then
+		echo "Creating ${CLEAN_DIR}"
+		mkdir -p "${CLEAN_DIR}"
+
+		local REMOTE_REPO="$(cd "${SOURCE_DIR}" && git ls-remote --get-url)"
+		echo "Cloning git repo from ${REMOTE_REPO}"
+		git clone "${REMOTE_REPO}" "${CLEAN_DIR}}"
+		if [ "${?}" != "0" ]; then
+			echo "ERROR: Could not clone repo from ${REMOTE_REPO}"
+			return 1
+		fi
+	fi
+
+	echo "Updating from git repo"
+	(cd "${CLEAN_DIR}" && git fetch --all --prune)
+
+	return 0
+}
+export -f git_create_clean_repo
+
+# arg 1 = source dir to stage from
+function git_prep_commit {	
+	if [ -z "${1}" ]; then
+		echo "USAGE: git_prep_commit [SOURCE_DIR]"
+		return
+	fi
+
+	local SOURCE_DIR="${1}"
+	if [ ! -d "${SOURCE_DIR}" ]; then
+		echo "ERROR: Cannot stage file, source dir doesn't exist: ${SOURCE_DIR}"
+		return
+	fi
+
+	local SOURCE_DIR_BASENAME="$(cd "${SOURCE_DIR}" && basename `pwd -P`)"
+	local COMMIT_DIR="${GIT_COMMIT_PARENT_DIR}/${SOURCE_DIR_BASENAME}-commit"
+	local CLEAN_DIR="${GIT_CLEAN_CHECKOUT_PARENT_DIR}/${SOURCE_DIR_BASENAME}-clean"
 	
 	if [ -e "${COMMIT_DIR}" ]; then
 		echo "Remove commit dir ${COMMIT_DIR}? ('YES' to select, enter to skip)"
@@ -217,25 +222,11 @@ function prep_commit {
 		fi
 	fi
 
+	git_create_clean_repo "${SOURCE_DIR}"
 	if [ ! -e "${CLEAN_DIR}" ]; then
-		echo "Error, clean dir '${CLEAN_DIR}' does not exist."
+		echo "Error, clean repo '${CLEAN_DIR}' does not exist."
 		return 1
-	elif [ ! -e "${SOURCE_DIR}" ]; then
-		echo "Error, source dir '${SOURCE_DIR}' does not exist."
-		return 1
-	fi
-
-	echo "[UPDATING GIT REPO]"
-	vpn_connect
-	if [ "${?}" = "1" ]; then
-		echo "ERROR: couldn't connect VPN"
-		return 1
-	fi
-
-	sleep 10
-	
-	cd "${CLEAN_DIR}" && git fetch --all --prune
-	cd "${CLEAN_DIR}" && git checkout main && git add * && git stash && git_pull_force_overwrite 
+	fi	
 
 	echo "Creating commit dir: ${COMMIT_DIR}"
 	cp -r "${CLEAN_DIR}" "${COMMIT_DIR}"
@@ -244,13 +235,14 @@ function prep_commit {
 	if [ -z "${TMP_BRANCH}" ]; then
 		local TMP_BRANCH="main"
 	fi
-	echo "Checking out branch: ${TMP_BRANCH}"
+	echo "Checking out branch on commit dir: ${TMP_BRANCH}"
 	cd "${COMMIT_DIR}" && git checkout "${TMP_BRANCH}"
+	cd "${COMMIT_DIR}" && git add * && git stash && git_pull_force_overwrite 
 
 	stage_commit_files "${1}"
 	
 	echo "Opening sourcetree for ${COMMIT_DIR}"
-	echo "WARNING: don't forget to create a branch ie 'git checkout -b hc-22'"
+	echo "WARNING: don't forget to create a branch ie 'git checkout -b my-branch'"
 
 	cd "${COMMIT_DIR}"
 
@@ -258,92 +250,7 @@ function prep_commit {
 
 	return 0
 }
-export -f prep_commit
-
-function git_backup {
-	if [ "" = "${1}" ]; then
-		echo "USAGE: git_backup [directory] [backup name (optional)]"
-		echo ""
-		echo "If backup name is not specified, the git project's current branch will be used as the backup name."
-		return 1
-	elif [ ! -d "${1}" ]; then
-		echo "Error, dir '${1}' does not exist."
-		return 1
-	fi
-
-	local BACKUP_NAME="${2}"
-
-	if [ -z "${BACKUP_NAME}" ]; then
-		TMP_BRANCH=`cd "${1}" && git branch --show-current`
-		if [ -z "${TMP_BRANCH}" ]; then
-			echo "Could not determine git branch for ${1}, and backup name arg not provided"
-			return
-		fi
-
-		echo "Backup name will be branch: ${TMP_BRANCH}"
-		echo ""
-		BACKUP_NAME="${TMP_BRANCH}"
-	fi
-
-	mkdir -p "${HYTE_BACKUP_DIR}"
-
-	local FOLDER_NAME=`basename "${1}"`
-	local FILE_DATE=`date "+%Y%m%d.%H%M%S"`
-	local ZIP_NAME="${FOLDER_NAME}.${BACKUP_NAME}.${FILE_DATE}.zip"
-
-	echo "[Backing up: ${1} to ${HYTE_BACKUP_DIR}/${ZIP_NAME}]"
-	
-	echo "[Cleaning code]"
-	for FILE in `find ${1} -type d -name target`; do
-		echo "Removing: ${FILE}"
-		rm -Rf "${FILE}"		
-	done
-
-	echo "[Zipping]"
-	zip -r "${HYTE_BACKUP_DIR}/${ZIP_NAME}" "${1}"
-	
-	echo "[Finished. Backed up to ${HYTE_BACKUP_DIR}/${ZIP_NAME}]"
-
-	return 0
-}
-export -f git_backup
-
-# arg 1 - directory to work in
-function git_update {
-	if [ "" = "${1}" ]; then
-		echo "USAGE: git_update [directory]"
-		return 1
-	elif [ ! -d "${1}" ]; then
-		echo "Directory does not exist: ${1}" 
-		return 1
-	fi
-
-	local GIT_HOME="${1}"
-
-	echo "[UPDATING GIT REPO]"
-	vpn_connect
-	if [ "${?}" = "1" ]; then
-		echo "ERROR: couldn't connect VPN"
-		return 1
-	fi
-
-	sleep 10
-
-	cd "${GIT_HOME}"
-	git fetch --all --prune
-
-	echo "Adding and stashing files"
-	git add *
-	git stash
-
-	echo "Pulling with force overwrite"
-	git_pull_force_overwrite
-
-	echo "Popping stashed files"
-	git stash pop
-
-	return 0
-}
+export -f git_prep_commit
 
 # arg 1 = branch to remove
 function git_remove_remote_branch {
@@ -365,7 +272,4 @@ function git_remove_remote_branch {
 	git push origin --delete "${BRANCH_TO_REMOVE}"
 	return ${?}
 }
-
-function git_show_remote_url {
-	git ls-remote --get-url origin
-}
+export -f git_remove_remote_branch

@@ -33,7 +33,6 @@ fi
 
 echo "Found ${FILE_COUNT} files."
 
-
 CHANGED_FILE_COUNT=0
 CHANGED_FILES=""
 

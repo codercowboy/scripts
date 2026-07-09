@@ -51,7 +51,9 @@ function clean_dot_files {
 }
 export -f clean_dot_files
 
-#!/bin/bash
+#################
+# RAMDISK STUFF #
+#################
 
 # ramdisk references: 
 #   https://superuser.com/questions/456803/create-ram-disk-mount-to-specific-folder-in-osx
@@ -99,7 +101,9 @@ function create_ramdisk {
 }
 export -f create_ramdisk
 
-# time machine tricks
+#######################
+# TIME MACHINE TRICKS #
+#######################
 
 function tm_thin_local_snapshots {
 	tmutil deletelocalsnapshots /	

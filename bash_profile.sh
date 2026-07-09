@@ -60,30 +60,26 @@
 #
 ########################################################################
 
-export MY_SCRIPTS_HOME="`dirname ${BASH_SOURCE[0]}`"
-export PATH="${MY_SCRIPTS_HOME}:${PATH}"
-
-export CODE=${HOME}/Documents/code
-export TOOLS=${HOME}/Documents/code/tools
-
-alias code='cd ${CODE}'
+if [ -z "${MY_SCRIPTS_HOME}" ]; then
+	export MY_SCRIPTS_HOME="`dirname ${BASH_SOURCE[0]}`"
+	export PATH="${MY_SCRIPTS_HOME}:${PATH}"
+fi
 
 ###################################
 # Import Various Helper Functions #
 ###################################
 
+# dev stuff
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_dev.sh"
-source "${MY_SCRIPTS_HOME}/bash_lib/lib_files.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_git.sh"
+source "${MY_SCRIPTS_HOME}/bash_lib/lib_maven.sh"
+
+# other stuff
+source "${MY_SCRIPTS_HOME}/bash_lib/lib_files.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_macos.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_media.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_rsync.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_security.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_zip_helpers.sh"
+source "${MY_SCRIPTS_HOME}/bash_lib/lib_backup.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_help.sh"
-
-##############
-# MISC STUFF #
-##############
-
-export EDITOR=vi # fight me.

@@ -76,8 +76,7 @@ function untar_each {
 		echo "  This will untar each tar in the given directory."
 		return
 	fi
-	cd "${1}" && find . -iname \*.tar\* -exec tar -xvf {} \;
-	cd -
+	(cd "${1}" && find . -iname \*.tar\* -exec tar -xvf {} \;)
 }
 
 export -f targz_each

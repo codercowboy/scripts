@@ -51,7 +51,7 @@
 ########################################################################
 
 
-function print_usage() {
+function print_usage {
 	echo "fixnefs.sh - fix NEF/ARW file names to match JPGs"
 	echo
 	echo "USAGE"
@@ -64,17 +64,17 @@ function print_usage() {
 	echo "  Only files located directly within the directory specified will be renamed."
 	echo
 	echo
-	echo "  ERROR: $1"
+	echo "  ERROR: ${1}"
 	exit 1
 }
 
 
-if  [ -z "$1" ]; then
+if  [ -z "${1}" ]; then
 	print_usage "Invalid arguments specified."
 fi
 
-if [ ! -d "$1" ]; then
-	print_usage "$1 is not a directory."
+if [ ! -d "${1}" ]; then
+	print_usage "${1} is not a directory."
 fi
 
 BASE_PATH="${1%*/}/" #this will put a / on the end of the path if there isnt one already

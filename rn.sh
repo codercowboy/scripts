@@ -12,6 +12,9 @@
 #
 # UPDATES:
 #
+# 2026/07/09
+#  - Minor script modernization changes
+#
 # 2024/08/01
 #  - add 'trim' mode
 #
@@ -48,8 +51,7 @@
 ########################################################################
 
 
-function print_usage()
-{
+function print_usage {
 	echo "rn.sh - file renaming utilities"
 	echo
 	echo "USAGE"
@@ -113,7 +115,7 @@ function run_prefix_or_suffix {
 	for FILE in ${FILES}; do
 		# echo "current file: ${FILE}"
 
-		local ORIGINAL_BASENAME=`basename "$FILE"`
+		local ORIGINAL_BASENAME=`basename "${FILE}"`
 		local ORIGINAL_DIRNAME=`dirname "${FILE}"`
 		# file/ extenstion extraction examples: https://stackoverflow.com/questions/965053/extract-filename-and-extension-in-bash
 		local FILE_WITHOUT_EXTENSION="${ORIGINAL_BASENAME%%.*}" # example, blah.tar.sh -> blah

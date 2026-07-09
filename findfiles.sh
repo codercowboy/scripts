@@ -42,10 +42,10 @@ FILES_WITH_DUPES_COUNT=0
 
 for FILE in `find ${SOURCE_DIR} -type f | sort`; do
 	((FILE_COUNT=FILE_COUNT + 1))
-	FILENAME=`basename "${FILE}"`
-	FILENAME_WITHOUT_EXTENSION="${FILENAME%%.*}" # example, blah.tar.sh -> blah
+	local FILENAME=`basename "${FILE}"`
+	local FILENAME_WITHOUT_EXTENSION="${FILENAME%%.*}" # example, blah.tar.sh -> blah
 	echo "Current source file: ${FILE} (name: ${FILENAME}) (without extension: ${FILENAME_WITHOUT_EXTENSION})"  
-	DUPE_COUNT=0
+	local DUPE_COUNT=0
 
 	for DUPE in `grep "${FILENAME}" "${TARGET_FILES_LIST}"`; do
 		echo "Found dupe: ${DUPE}"
@@ -55,10 +55,9 @@ for FILE in `find ${SOURCE_DIR} -type f | sort`; do
 	if [ ${DUPE_COUNT} = "0" ]; then
 		echo "Couldn't find dupes so far, trying without extension"
 		for DUPE in `grep "${FILENAME_WITHOUT_EXTENSION}" "${TARGET_FILES_LIST}"`; do
-		echo "Found dupe: ${DUPE}"
-		((DUPE_COUNT=DUPE_COUNT + 1))	
-	done
-
+			echo "Found dupe: ${DUPE}"
+			((DUPE_COUNT=DUPE_COUNT + 1))	
+		done
 	fi
 
 	if [ ${DUPE_COUNT} = "0" ]; then

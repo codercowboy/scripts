@@ -12,6 +12,9 @@
 #
 # UPDATES:
 #
+# 2026/07/09
+#  - Minor script modernization changes
+#
 # 2016/03/09
 #  - Don't rename files that already have the date in the filename.
 #  - Added counters / summary at end of run for sanity checking.
@@ -74,8 +77,7 @@
 ########################################################################
 
 
-function print_usage()
-{
+function print_usage {
 	echo "renameit.sh - rename files w/ a timestamp based on file's last modified time"
 	echo
 	echo "USAGE"
@@ -93,18 +95,13 @@ function print_usage()
 	exit 1
 }
 
-
-if  test -z "$1"
-then
+if [ -z "$1" ]; then
 	print_usage "Invalid arguments specified."
+elif [ ! -d "${1}" ]; then
+	print_usage "${1} is not a directory."
 fi
 
-if test ! -d "$1"
-then
-	print_usage "$1 is not a directory."
-fi
-
-APPENDER="$2"
+APPENDER="${2}"
 
 CHANGED_FILE_COUNTER=0
 SKIPPED_FILE_ALREADY_RENAMED_COUNTER=0
@@ -114,20 +111,19 @@ FILE_COUNTER=1
 
 BASE_PATH="${1%*/}/" #this will put a / on the end of the path if there isnt one already
 
-FILES_COUNT_BEFORE=`find "$1" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32' | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
+FILES_COUNT_BEFORE=`find "${1}" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32' | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
 
 #
 # thanks to http://www.vasudevaservice.com/documentation/how-to/converting_dos_and_unix_text_files
 # for help w/ dos2unix to TR convert tip
 #
 
-FILES=`find "$1" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32'`
+FILES=`find "${1}" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32'`
 
 #make for's argument seperator newline only
 IFS=$'\n'
 
-for FILE in $FILES
-do
+for FILE in $FILES; do
 	# echo "current file: $FILE"
 	ORIGINAL_BASENAME=`basename "$FILE"`
 	
@@ -141,8 +137,7 @@ do
 	
 	#if jhead failed or doesnt exist then try to use find to use the last mod time of the file..
 	
-	if test -z "$FILE_DATE"
-	then
+	if [ -z "$FILE_DATE" ]; then
 		#FILE_DATE=`find "$FILE" -printf "%TY%Tm%Td %TH%TM%TS"` #old find expression to 
 		    	
 		#SECONDS_DECIMAL_PLACE=`expr index "$FILE_DATE" .`
@@ -161,7 +156,7 @@ do
 	
 	#if we still don't have a date, don't rename it..	    	    	   
 	
-	if test -z "$FILE_DATE"; then
+	if [ -z "$FILE_DATE" ]; then
 		echo "  Skipping file, we couldn't find a date to rename it with: ${FILE}"
 		((SKIPPED_FILE_NO_DATE=SKIPPED_FILE_NO_DATE + 1))
 	elif echo "${ORIGINAL_BASENAME}" | grep -q "${FILE_DATE}"; then
@@ -174,8 +169,7 @@ do
 		
 		#echo "  trying $NEW_FILE"
 		FILE_COUNTER=1;
-		while [ -e "$NEW_FILE" ]
-		do
+		while [ -e "$NEW_FILE" ]; do
 		  #echo "  file $NEW_FILE already exists, trying something else.."
 		  #the file already exists, lets try to make it unique..
 		  NEW_FILE="${BASE_PATH}${FILE_DATE}${APPENDER} ${FILE_COUNTER} ${ORIGINAL_BASENAME}"
@@ -189,7 +183,6 @@ do
 	fi	
 done
 
-
 FILES_COUNT_AFTER=`find "$1" -maxdepth 1 -type f -name '*' | sort | tr -d '\15\32' | wc -l | sed 's/ *\([0-9]*\).*/\1/'`
 
 echo ""
@@ -200,6 +193,6 @@ echo "  Files Skipped, Couldn't determine date: ${SKIPPED_FILE_NO_DATE}"
 echo "  Files before starting: ${FILES_COUNT_BEFORE}"
 echo "  Files after renaming: ${FILES_COUNT_AFTER}"
 echo ""
-if test ${FILES_COUNT_BEFORE} -ne ${FILES_COUNT_AFTER}; then
+if [ ${FILES_COUNT_BEFORE} -ne ${FILES_COUNT_AFTER} ]; then
 	echo "WARNING: File count differs after rename operation, were some deleted?"
 fi
