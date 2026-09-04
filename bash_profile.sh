@@ -61,7 +61,7 @@
 ########################################################################
 
 if [ -z "${MY_SCRIPTS_HOME}" ]; then
-	export MY_SCRIPTS_HOME="`dirname ${BASH_SOURCE[0]}`"
+	export MY_SCRIPTS_HOME=`dirname "${BASH_SOURCE[0]}"`
 	export PATH="${MY_SCRIPTS_HOME}:${PATH}"
 fi
 
@@ -73,6 +73,7 @@ fi
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_dev.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_git.sh"
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_maven.sh"
+source "${MY_SCRIPTS_HOME}/claude/lib_claude.sh"
 
 # other stuff
 source "${MY_SCRIPTS_HOME}/bash_lib/lib_files.sh"

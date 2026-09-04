@@ -100,28 +100,17 @@ function k8s_cp_from {
 export -f k8s_cp_from
 
 ################
-# CLAUDE STUFF #
+# DOCKER STUFF #
 ################
 
-# claude code shortcuts
-alias claude_docker_start='${TOOLS}/claude-pod/claude-pod'
-
-function claude_vm_start {
-	echo "todo"
+function docker_am_i_inside {
+	if [ -f /.dockerenv ]; then
+		echo "In Docker"
+	else
+		echo "*NOT IN DOCKER!!*"
+	fi
 }
-export -f claude_vm_start
-
-# arg 1 is name of the claude code session (example "NBA JAM Hacks")
-function claude_run_here {
-	local CLAUDE_SESSION_NAME="${1:-"code session"}"
-	# inside a tart VM, this is the ip of your host
-	export GEARSYSTEM_HOST_ADDR=192.168.64.1	
-	export ANTHROPIC_MODEL=claude-opus-4-7
-	# claude code intalls cli tools here
-	export PATH="${PATH}:~/.local/bin/"
-	claude --dangerously-skip-permissions --remote-control "${CLAUDE_SESSION_NAME}" --disallowed-tools "Bash(git *)"
-}
-export -f claude_run_here
+export -f docker_am_i_inside
 
 ##############
 # MISC STUFF #

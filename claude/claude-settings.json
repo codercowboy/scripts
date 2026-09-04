@@ -1,0 +1,40 @@
+{
+  "_comment": "reference: https://code.claude.com/docs/en/settings-reference#agent",
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",  
+  "model": "claude-opus-4-8",
+  "permissions": {
+    "defaultMode": "auto",
+    "_comment": "more about this here: https://ofox.ai/blog/claude-code-safety-prevent-accidental-file-deletion/",
+    "deny": [
+      "Bash(rm:*)",
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(dd:*)",
+      "Bash(mkfs:*)",
+      "Bash(* > /dev/sda*)",
+      "Read(~/.ssh/**)",
+      "Read(**/.env)",
+      "Edit(**/.env)",
+      "Edit(.git/**)"
+    ]
+  },
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "filesystem": {
+      "denyRead": ["/Users", "/Volumes"],
+      "allowRead": ["~/.claude"]
+    },
+    "network": {
+      "allowedDomains": ["*"]
+    }
+  }
+}
+
+

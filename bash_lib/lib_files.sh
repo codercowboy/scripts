@@ -44,8 +44,46 @@ function move_files_here_fn {
 	echo "Moving ${FILE_COUNT} files to target directory `pwd -P`"
 	for FILE in ${FILES}; do	
 		echo "Moving: ${FILE}"	
-		mv "${FILE}" .
+		mv "${FILE}" "${1}/"
 	done
 	IFS=${OLD_IFS}
 }
 alias move_files_here='move_files_here_fn ${1}'
+
+function move_files_to_subdirs {
+	if [ "${1}" = "" ]; then
+		echo "USAGE: move_files_to_subdirs [source directory]"
+		echo "  source directory is directory to find files in"
+		echo "  files will be moved to subdirs named after file"
+		echo ""
+		echo "Example: dir/file1.txt -> dir/file1/file1.txt"
+		return
+	fi
+
+	local OLD_IFS=${IFS}
+	IFS=$'\n'
+	local FILES=`find "${1}" -type f | sort`
+	local FILE_COUNT=`echo "${FILES}" | wc -l`
+	for FILE in ${FILES}; do
+		if [ ! -e "${FILE}" ]; then
+			echo "File doesn't exist, skipping: ${FILE}"
+			continue;
+		fi		
+		local FILE_BASENAME=`basename "${FILE}"`
+		if [ -z "${FILE_BASENAME}" ]; then
+			echo "File basename is empty, skipping: ${FILE}"
+			continue;
+		fi
+		local FILE_BASE=${FILE_BASENAME%%.*}
+		if [ -z "${FILE_BASE}" ]; then
+			echo "File base is empty, skipping: ${FILE}"
+			continue;
+		fi
+		local TARGET_DIR="${1}/${FILE_BASE}"
+		echo "Moving: ${FILE} to ${TARGET_DIR}"
+		mkdir -p "${TARGET_DIR}"
+		mv "${FILE}" "${TARGET_DIR}/"
+	done
+	IFS=${OLD_IFS}
+}
+alias move_files_to_subdirs='move_files_to_subdirs ${1}'

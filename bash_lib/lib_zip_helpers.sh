@@ -73,10 +73,17 @@ export -f targz_each
 function untar_each {
 	if [ -z "${1}" ]; then
 		echo "USAGE: untar_each [DIRECTORY]"
-		echo "  This will untar each tar in the given directory."
+		echo "  This will untar each tar in the directory it's in."
 		return
 	fi
-	(cd "${1}" && find . -iname \*.tar\* -exec tar -xvf {} \;)
+	IFS=$'\n'
+	local FILES=`find "${1}" -type f -iname \*.tar\* | sort`
+	for FILE in ${FILES}; do
+		TAR_DIR=`dirname "${FILE}"`
+		FILE_BASENAME=`basename "${FILE}"`
+		echo "Untarring '${FILE_BASENAME}' to '${TAR_DIR}'"
+		(cd "${TAR_DIR}" && tar -xf "${FILE_BASENAME}")
+	done
 }
 
 export -f targz_each
